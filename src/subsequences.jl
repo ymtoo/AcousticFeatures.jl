@@ -14,7 +14,6 @@ function Base.iterate(itr::Subsequence, state=1)
     itr.winlen > length(itr.c) && throw(ArgumentError("`winlen` has to be smaller than the signal length."))
     step = itr.winlen-itr.noverlap
     padlen = itr.winlen÷2
-#    r = min(state + step - 1, length(itr.c))
     if state <= padlen
         return vcat(zeros(eltype(itr.c), padlen-(state-1)), itr.c[1:state+padlen]), state+step
     elseif state >= length(itr.c)-padlen

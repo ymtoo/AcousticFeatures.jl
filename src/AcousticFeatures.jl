@@ -90,13 +90,12 @@ function score(f::FrequencyContours, x::AbstractArray{T, 1}) where T
             if length(ctrs) == 0
                 ctrs = [[(crd[1], 1)] for crd in crds]
             else
-                idxselect = Int64[]#zeros(Int64, length(contours))
-                costselect = Float64[]#zeros(Float64, length(contours))
+                idxselect = Int64[]
+                costselect = Float64[]
                 for (j, ctr) in enumerate(ctrs)
                     if (ctr[end][2] == i-1) && abs(frequency[ctr[end][1]]-frequency[crd[1]]) <= f.fd
                         append!(idxselect, j)
                         append!(costselect, abs(frequency[ctr[end][1]]-frequency[crd[1]]))
-#                        append!(contour, (coord[1], i))
                     end
                 end
                 if isempty(idxselect)
