@@ -1,4 +1,6 @@
 # AcousticFeatures
+[![Build Status](https://travis-ci.org/ymtoo/AcousticFeatures.jl.svg?branch=master)](https://travis-ci.org/ymtoo/AcousticFeatures.jl)
+[![codecov](https://codecov.io/gh/ymtoo/AcousticFeatures.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/ymtoo/AcousticFeatures.jl)
 
 This package implements a set of generic acoustic features for time series acoustic data.
 
