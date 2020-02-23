@@ -5,7 +5,7 @@ include("utils.jl")
 
 using .Subsequences, .Utils
 
-using AlphaStableDistributions, DSP, Findpeaks, LazyWAVFiles, StatsBase
+using AlphaStableDistributions, DSP, Findpeaks, StatsBase
 
 export Energy, Myriad, FrequencyContours, Score, Subsequence, spectrumflatten, chirp
 
@@ -118,7 +118,7 @@ function score(f::FrequencyContours, x::AbstractArray{T, 1}) where T
 end
 
 
-function Score(f::AbstractAcousticFeature, x::Union{DistributedWAVFile{T, N, L}, AbstractArray{T, 1}}; winlen::Int=length(x), noverlap::Int=0) where {T, N, L}
+function Score(f::AbstractAcousticFeature, x:: AbstractArray{T, 1}; winlen::Int=length(x), noverlap::Int=0) where {T, N, L}
     xlen = length(x)
     if winlen < xlen
         sc = Score(zeros(Float64, 0), zeros(Int64, 0))
