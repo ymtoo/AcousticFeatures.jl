@@ -37,12 +37,13 @@ using AlphaStableDistributions, Distributions, LazyWAVFiles, Test, WAV
     x = rand(AlphaStable(α=α, scale=scale), N)
     N = length(x)
     d = fit(AlphaStable, x)
+    sqKscale = myriadconstant(d.α, d.scale)
     @test Score(Myriad(), x).s[1]/N ≈ (log((d.α/(2-d.α+eps()))*(d.scale^2))) atol=0.1
     winlens = [1_000, 10_000, 1_001, 10_001]
     noverlaps = [0, 100, 500]
     for winlen in winlens, noverlap in noverlaps
         subseq = Subsequence(x, winlen, noverlap)
-        sc = Score(Myriad(d.α, d.scale), x; winlen=winlen, noverlap=noverlap)
+        sc = Score(Myriad(sqKscale), x; winlen=winlen, noverlap=noverlap)
         spart = sc.s[(sc.index .> subseq.winlen÷2) .& (sc.index .< length(x)-subseq.winlen÷2)]
         @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
     end
@@ -51,7 +52,7 @@ using AlphaStableDistributions, Distributions, LazyWAVFiles, Test, WAV
     dfile = DistributedWAVFile(tmpdir)
     for winlen in winlens, noverlap in noverlaps
         subseq = Subsequence(dfile, winlen, noverlap)
-        sc = Score(Myriad(d.α, d.scale), dfile; winlen=winlen, noverlap=noverlap)
+        sc = Score(Myriad(sqKscale), dfile; winlen=winlen, noverlap=noverlap)
         spart = sc.s[(sc.index .> subseq.winlen÷2) .& (sc.index .< length(x)-subseq.winlen÷2)]
         @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
     end

@@ -7,7 +7,7 @@ using .Subsequences, .Utils
 
 using AlphaStableDistributions, DSP, Findpeaks, StatsBase
 
-export Energy, Myriad, FrequencyContours, Score, Subsequence, spectrumflatten, chirp
+export Energy, Myriad, FrequencyContours, Score, Subsequence, spectrumflatten, chirp, myriadconstant
 
 abstract type AbstractAcousticFeature end
 
@@ -19,10 +19,9 @@ abstract type AbstractAcousticFeature end
 struct Energy <: AbstractAcousticFeature end
 
 struct Myriad <: AbstractAcousticFeature
-    α::Union{Nothing, Float64}
-    scale::Union{Nothing, Float64}
+    sqKscale::Union{Nothing, Real}
 end
-Myriad() = Myriad(nothing, nothing)
+Myriad() = Myriad(nothing)
 
 struct FrequencyContours <: AbstractAcousticFeature
     fs::Real
@@ -33,7 +32,6 @@ struct FrequencyContours <: AbstractAcousticFeature
     minfdist::Real
     mintlen::Real
 end
-#FrequencyContours(fs, n, tnorm) = FrequencyContours(fs, n ,nothing ,0.0 ,fs/2)
 
 mutable struct Score{T}
     s::AbstractArray{T, 1}
@@ -58,13 +56,9 @@ score(::Energy, x::AbstractArray{T, 1}) where T = mean(abs2, x)
     IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
 """
 function score(f::Myriad, x::AbstractArray{T, 1}) where T
-    α=f.α; scale=f.scale
-    if any([α, scale] .== [nothing, nothing])
-        d = fit(AlphaStable, x)
-        α=d.α; scale=d.scale
-    end
-    sq_Kscale = (α/(2-α+eps()))*(scale^2)
-    sum(x -> log(sq_Kscale + x^2), x)
+    sqKscale = f.sqKscale
+    (sqKscale == nothing) && (sqKscale = myriadconstant(x))
+    sum(x -> log(sqKscale + abs2(x)), x)
 end
 
 """

@@ -1,12 +1,12 @@
 module Utils
 
-using Statistics
+using Statistics, AlphaStableDistributions
 
 include("subsequences.jl")
 
 using .Subsequences
 
-export spectrumflatten, chirp
+export spectrumflatten, chirp, myriadconstant
 
 function spectrumflatten(x::AbstractArray{T, 1}, Nnorm::Int) where T <:Real
     if Nnorm >= length(x)
@@ -44,6 +44,15 @@ function chirp(f1, f2, duration, fs; method="linear", phi=0)
         ArgumentError("Method must be linear, but a value of $method was given.")
     end
     cos.(phase.+phi)
+end
+
+function myriadconstant(α, scale)
+    (α/(2-α+eps()))*(scale^2)
+end
+
+function myriadconstant(x::AbstractArray{T, 1}) where T
+    d = fit(AlphaStable, x)
+    myriadconstant(d.α, d.scale)
 end
 
 end
