@@ -1,5 +1,7 @@
 using AcousticFeatures
 
+using AcousticFeatures.Utils
+
 using AlphaStableDistributions, Distributions, LazyWAVFiles, Test, WAV
 
 @testset "AcousticFeatures" begin

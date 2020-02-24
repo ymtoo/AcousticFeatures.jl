@@ -7,7 +7,7 @@ using .Subsequences, .Utils
 
 using AlphaStableDistributions, DSP, Findpeaks, StatsBase
 
-export Energy, Myriad, FrequencyContours, Score, Subsequence, spectrumflatten, chirp, myriadconstant
+export Energy, Myriad, FrequencyContours, Score, Subsequence
 
 abstract type AbstractAcousticFeature end
 
@@ -46,7 +46,7 @@ end
 """
     Score of `x` based on mean energy.
 """
-score(::Energy, x::AbstractArray{T, 1}) where T = mean(abs2, x)
+score(::Energy, x::AbstractArray{T, 1}) where T<:Real = mean(abs2, x)
 
 """
     Score of `x` based on myriad
@@ -55,7 +55,7 @@ score(::Energy, x::AbstractArray{T, 1}) where T = mean(abs2, x)
     Mahmood et. al., "Optimal and Near-Optimal Detection in Bursty Impulsive Noise,"
     IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
 """
-function score(f::Myriad, x::AbstractArray{T, 1}) where T
+function score(f::Myriad, x::AbstractArray{T, 1}) where T<:Real
     sqKscale = f.sqKscale
     (sqKscale == nothing) && (sqKscale = myriadconstant(x))
     sum(x -> log(sqKscale + abs2(x)), x)
@@ -68,7 +68,7 @@ end
     D. Mellinger, R. Morrissey, L. Thomas, J. Yosco, "A method for detecting whistles, moans, and other frequency
     contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
 """
-function score(f::FrequencyContours, x::AbstractArray{T, 1}) where T
+function score(f::FrequencyContours, x::AbstractArray{T, 1}) where T<:Real
     spec = spectrogram(x, f.n, f.n÷2; fs=f.fs, window=DSP.hamming)
     p=spec.power; frequency=spec.freq; t=spec.time
     δt = t[2]-t[1]
@@ -112,7 +112,7 @@ function score(f::FrequencyContours, x::AbstractArray{T, 1}) where T
 end
 
 
-function Score(f::AbstractAcousticFeature, x::AbstractArray{T, 1}; winlen::Int=length(x), noverlap::Int=0) where {T, N, L}
+function Score(f::AbstractAcousticFeature, x::AbstractArray{T, 1}; winlen::Int=length(x), noverlap::Int=0) where {T<:Real, N, L}
     xlen = length(x)
     if winlen < xlen
         sc = Score(zeros(Float64, 0), zeros(Int64, 0))

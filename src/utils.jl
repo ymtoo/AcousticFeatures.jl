@@ -50,7 +50,7 @@ function myriadconstant(α, scale)
     (α/(2-α+eps()))*(scale^2)
 end
 
-function myriadconstant(x::AbstractArray{T, 1}) where T
+function myriadconstant(x::AbstractArray{T, 1}) where T<:Real
     d = fit(AlphaStable, x)
     myriadconstant(d.α, d.scale)
 end
