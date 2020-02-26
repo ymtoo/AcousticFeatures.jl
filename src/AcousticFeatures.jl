@@ -89,22 +89,22 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
                 costselect = Float64[]
                 for (j, ctr) in enumerate(ctrs)
                     if (ctr[end][2] == i-1) && abs(frequency[ctr[end][1]]-frequency[crd[1]]) <= f.fd
-                        append!(idxselect, j)
-                        append!(costselect, abs(frequency[ctr[end][1]]-frequency[crd[1]]))
+                        push!(idxselect, j)
+                        push!(costselect, abs(frequency[ctr[end][1]]-frequency[crd[1]]))
                     end
                 end
                 if isempty(idxselect)
-                    append!(ctrs, [[(crd[1], i)]])
+                    push!(ctrs, [(crd[1], i)])
                 else
                     idxopt = idxselect[argmin(costselect)]
-                    append!(ctrs[idxopt], [(crd[1], i)])
+                    push!(ctrs[idxopt], (crd[1], i))
                 end
             end
         end
     end
     idxdelete = Int64[]
     for (i, ctr) in enumerate(ctrs)
-        (length(ctr)-1)*(δt) < f.mintlen && append!(idxdelete, i)
+        (length(ctr)-1)*(δt) < f.mintlen && push!(idxdelete, i)
     end
     deleteat!(ctrs, idxdelete)
     count = isempty(ctrs) ? 0 : sum(length, ctrs)
@@ -126,8 +126,8 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
     state = 1
     step = subseqs.winlen-subseqs.noverlap
     for subseq in subseqs
-        append!(sc.s, score(f, subseq))
-        append!(sc.index, state)
+        push!(sc.s, score(f, subseq))
+        push!(sc.index, state)
         state += step
     end
     sc
