@@ -18,24 +18,24 @@ abstract type AbstractAcousticFeature end
 ################################################################################
 struct Energy <: AbstractAcousticFeature end
 
-struct Myriad <: AbstractAcousticFeature
-    sqKscale::Union{Nothing, Real}
+struct Myriad{T<:Union{Nothing, Real}} <: AbstractAcousticFeature
+    sqKscale::T
 end
-Myriad() = Myriad(nothing)
+Myriad() = Myriad{Nothing}(nothing)
 
-struct FrequencyContours <: AbstractAcousticFeature
-    fs::Real
+struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
+    fs::FT
     n::Int
-    tnorm::Union{Nothing, Real} #time constant for normalization (sec)
-    fd::Real #frequency difference from one step to the next (Hz)
-    minhprc::Real
-    minfdist::Real
-    mintlen::Real
+    tnorm::Union{Nothing, T} #time constant for normalization (sec)
+    fd::T #frequency difference from one step to the next (Hz)
+    minhprc::T
+    minfdist::T
+    mintlen::T
 end
 
-mutable struct Score{T}
-    s::AbstractArray{T, 1}
-    index::AbstractArray{Int, 1}
+mutable struct Score{VT1<:AbstractVector{<:Real},VT2<:AbstractVector{Int}}
+    s::VT1
+    index::VT2
 end
 ################################################################################
 #
@@ -46,7 +46,7 @@ end
 """
     Score of `x` based on mean energy.
 """
-score(::Energy, x::AbstractArray{T, 1}) where T<:Real = mean(abs2, x)
+score(::Energy, x::AbstractVector{T}) where T<:Real = mean(abs2, x)
 
 """
     Score of `x` based on myriad
@@ -55,11 +55,12 @@ score(::Energy, x::AbstractArray{T, 1}) where T<:Real = mean(abs2, x)
     Mahmood et. al., "Optimal and Near-Optimal Detection in Bursty Impulsive Noise,"
     IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
 """
-function score(f::Myriad, x::AbstractArray{T, 1}) where T<:Real
+function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real, S<:Real}
     sqKscale = f.sqKscale
-    (sqKscale == nothing) && (sqKscale = myriadconstant(x))
     sum(x -> log(sqKscale + abs2(x)), x)
 end
+
+score(f::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
 """
     Score of `x` based on frequency contours count
@@ -68,18 +69,18 @@ end
     D. Mellinger, R. Morrissey, L. Thomas, J. Yosco, "A method for detecting whistles, moans, and other frequency
     contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
 """
-function score(f::FrequencyContours, x::AbstractArray{T, 1}) where T<:Real
+function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     spec = spectrogram(x, f.n, f.n÷2; fs=f.fs, window=DSP.hamming)
-    p=spec.power; frequency=spec.freq; t=spec.time
+    p  = spec.power; frequency=spec.freq; t=spec.time
     δt = t[2]-t[1]
     δf = frequency[2]-frequency[1]
-    f.tnorm == nothing ? Nnorm = size(p, 2) : Nnorm = f.tnorm÷(δt) |> Int
-    p = spectrumflatten(p, Nnorm) #noise-flattened spectrogram
+    f.tnorm === nothing ? Nnorm = size(p, 2) : Nnorm = f.tnorm÷(δt) |> Int
+    p    = spectrumflatten(p, Nnorm) #noise-flattened spectrogram
     crds = findpeaks(p[:, 1], minHeight=percentile(p[:, 1], f.minhprc), minDist=trunc(Int, f.minfdist÷δf))
     ctrs = [[(crd[1], 1)] for crd in crds]
     for (i, col) in enumerate(eachcol(p[:, 2:end]))
         col = collect(col)
-        crds = findpeaks(col, minHeight=percentile(col, f.minhprc), minDist=trunc(Int, f.minfdist÷δf))
+        crds = findpeaks(col, minHeight=percentile(col, f.minhprc), minDist=trunc(Int, f.minfdist/δf))
         for crd in crds
             if length(ctrs) == 0
                 ctrs = [[(crd[1], 1)] for crd in crds]
@@ -106,16 +107,15 @@ function score(f::FrequencyContours, x::AbstractArray{T, 1}) where T<:Real
         (length(ctr)-1)*(δt) < f.mintlen && append!(idxdelete, i)
     end
     deleteat!(ctrs, idxdelete)
-    count = 0
-    [count += length(ctr) for ctr in ctrs]
+    count = isempty(ctrs) ? 0 : sum(length, ctrs)
     count/length(p)
 end
 
 
-function Score(f::AbstractAcousticFeature, x::AbstractArray{T, 1}; winlen::Int=length(x), noverlap::Int=0) where {T<:Real, N, L}
+function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=length(x), noverlap::Int=0) where {T<:Real, N, L}
     xlen = length(x)
     if winlen < xlen
-        sc = Score(zeros(Float64, 0), zeros(Int64, 0))
+        sc = Score(zeros(T, 0), zeros(Int64, 0))
     elseif winlen == xlen
         return Score([score(f, x)], [1])
     else
