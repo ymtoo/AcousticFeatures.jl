@@ -33,9 +33,9 @@ struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     mintlen::T
 end
 
-mutable struct Score{VT1<:AbstractVector{<:Real},VT2<:AbstractVector{Int}}
+mutable struct Score{VT1<:AbstractVector{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
-    index::VT2
+    indices::VT2
 end
 ################################################################################
 #
@@ -112,23 +112,19 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
 end
 
 
-function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=length(x), noverlap::Int=0) where {T<:Real, N, L}
+function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=length(x), noverlap::Int=0, subseqtype::DataType=Float64, preprocess::Function=x->x) where {T<:Real, N, L}
     xlen = length(x)
     if winlen < xlen
-        sc = Score(zeros(T, 0), zeros(Int64, 0))
+        (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
+        subseqs = Subsequence(x, winlen, noverlap)
+        sc = Score(zeros(T, length(subseqs)), 1:subseqs.step:xlen)
     elseif winlen == xlen
-        return Score([score(f, x)], [1])
+        return Score([score(f, x)], 1:1)
     else
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
-    (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
-    subseqs = Subsequence(x, winlen, noverlap)
-    state = 1
-    step = subseqs.winlen-subseqs.noverlap
-    for subseq in subseqs
-        push!(sc.s, score(f, subseq))
-        push!(sc.index, state)
-        state += step
+    for (i, subseq) in enumerate(subseqs)
+        sc.s[i] = score(f, preprocess(convert.(subseqtype, subseq)))
     end
     sc
 end

@@ -24,7 +24,7 @@ x = A.*sin.(2π*frequency*t)
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(x, winlen, noverlap)
             sc = Score(Energy(), x; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.index .> subseq.winlen÷2) .& (sc.index .< length(x)-subseq.winlen÷2)]
+            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart, repeat([(A^2)/2], length(spart)), atol=0.001))
         end
         WAV.wavwrite(x[1:N÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
@@ -33,7 +33,7 @@ x = A.*sin.(2π*frequency*t)
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(dfile, winlen, noverlap)
             sc = Score(Energy(), dfile; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.index .> subseq.winlen÷2) .& (sc.index .< length(x)-subseq.winlen÷2)]
+            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart, repeat([(A^2)/2], length(spart)), atol=0.001))
         end
     end
@@ -54,7 +54,7 @@ x = A.*sin.(2π*frequency*t)
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(x, winlen, noverlap)
             sc = Score(Myriad(sqKscale), x; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.index .> subseq.winlen÷2) .& (sc.index .< length(x)-subseq.winlen÷2)]
+            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
         end
         WAV.wavwrite(x[1:N÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
@@ -63,7 +63,7 @@ x = A.*sin.(2π*frequency*t)
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(dfile, winlen, noverlap)
             sc = Score(Myriad(sqKscale), dfile; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.index .> subseq.winlen÷2) .& (sc.index .< length(x)-subseq.winlen÷2)]
+            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
         end
     end
@@ -94,8 +94,8 @@ x = A.*sin.(2π*frequency*t)
             subseq = Subsequence(x, winlen, noverlap)
             sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x1, winlen=winlen, noverlap=noverlap)
             sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x2, winlen=winlen, noverlap=noverlap)
-            spart1 = sc1.s[(sc1.index .> subseq.winlen÷2) .& (sc1.index .< length(x)-subseq.winlen÷2)]
-            spart2 = sc2.s[(sc2.index .> subseq.winlen÷2) .& (sc2.index .< length(x)-subseq.winlen÷2)]
+            spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(x)-subseq.winlen÷2)]
+            spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(x)-subseq.winlen÷2)]
             @test all(isless.(spart2, spart1))
         end
         WAV.wavwrite(x[1:N÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
@@ -105,8 +105,8 @@ x = A.*sin.(2π*frequency*t)
             subseq = Subsequence(dfile, winlen, noverlap)
             sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x1, winlen=winlen, noverlap=noverlap)
             sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x2, winlen=winlen, noverlap=noverlap)
-            spart1 = sc1.s[(sc1.index .> subseq.winlen÷2) .& (sc1.index .< length(x)-subseq.winlen÷2)]
-            spart2 = sc2.s[(sc2.index .> subseq.winlen÷2) .& (sc2.index .< length(x)-subseq.winlen÷2)]
+            spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(x)-subseq.winlen÷2)]
+            spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(x)-subseq.winlen÷2)]
             @test all(isless.(spart2, spart1))
         end
     end
