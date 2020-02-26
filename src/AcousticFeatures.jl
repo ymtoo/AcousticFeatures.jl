@@ -117,9 +117,9 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
         subseqs = Subsequence(x, winlen, noverlap)
-        sc = Score(zeros(T, length(subseqs)), 1:subseqs.step:xlen)
+        sc = Score(zeros(Float64, length(subseqs)), 1:subseqs.step:xlen)
     elseif winlen == xlen
-        return Score([score(f, x)], 1:1)
+        return Score([score(f, preprocess(convert.(subseqtype, x)))], 1:1)
     else
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
