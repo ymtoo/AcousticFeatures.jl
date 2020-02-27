@@ -31,4 +31,6 @@ end
 
 Base.length(itr::Subsequence) = ceil(Int64, length(itr.c)/itr.step)
 
+Base.getindex(itr::Subsequence, i::Number) = iterate(itr, (1:itr.step:length(itr.c))[i])[1]
+
 end
