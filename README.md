@@ -34,8 +34,8 @@ julia> sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintle
 
 julia> sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x, winlen=winlen, noverlap=noverlap)
 
-julia> plot(sc1.index/fs, sc1.s, xlabel="Time (sec)", ylabel="Frequency Contours", label="without chirp", color=:blue, thickness_scaling=1.5, dpi=150)
+julia> plot(sc1.indices/fs, sc1.s, xlabel="Time (sec)", ylabel="Frequency Contours", label="without chirp", color=:blue, thickness_scaling=1.5, dpi=150)
 
-julia> plot!(sc2.index/fs, sc2.s, xlabel="Time (sec)", ylabel="Frequency Contours", label="with chirp", color=:red, thickness_scaling=1.5, dpi=150)
+julia> plot!(sc2.indices/fs, sc2.s, xlabel="Time (sec)", ylabel="Frequency Contours", label="with chirp", color=:red, thickness_scaling=1.5, dpi=150)
 ```
 ![window](frequencycontours.png)
