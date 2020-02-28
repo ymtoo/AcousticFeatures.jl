@@ -76,11 +76,11 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     δf = frequency[2]-frequency[1]
     f.tnorm === nothing ? Nnorm = size(p, 2) : Nnorm = f.tnorm÷(δt) |> Int
     p    = spectrumflatten(p, Nnorm) #noise-flattened spectrogram
-    crds,_ = peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), percentile(p[:, 1], f.minhprc))
+    crds,_ = peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), eps(T)+percentile(p[:, 1], f.minhprc))
     ctrs = [[(crd[1], 1)] for crd in crds]
     for (i, col) in enumerate(eachcol(p[:, 2:end]))
         col = collect(col)
-        crds,_ = Peaks.peakprom(col, Maxima(), trunc(Int, f.minfdist/δf), percentile(col, f.minhprc))
+        crds,_ = Peaks.peakprom(col, Maxima(), trunc(Int, f.minfdist/δf), eps(T)+percentile(col, f.minhprc))
         for crd in crds
             if length(ctrs) == 0
                 ctrs = [[(crd[1], 1)] for crd in crds]
