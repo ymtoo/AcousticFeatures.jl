@@ -128,9 +128,13 @@ x = A.*sin.(2π*frequency*t)
         [6, 7, 0]]
         subseqs2 = Subsequence(x, winlen, noverlap)
         subseqs3 = Subsequence(dfile, winlen, noverlap)
-        for (subseq1, subseq2, subseq3) in zip(subseqs1, subseqs2, subseqs3)
-            @test subseq1 == subseq2
-            @test subseq1 == subseq3
+        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+            @test subseq1 == subseq2 == subseq3
+            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+        end
+        for i in 1:length(subseqs1)
+
         end
 
         winlen = 3
@@ -140,9 +144,10 @@ x = A.*sin.(2π*frequency*t)
         [6, 7, 0]]
         subseqs2 = Subsequence(x, winlen, noverlap)
         subseqs3 = Subsequence(dfile, winlen, noverlap)
-        for (subseq1, subseq2, subseq3) in zip(subseqs1, subseqs2, subseqs3)
-            @test subseq1 == subseq2
-            @test subseq1 == subseq3
+        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+            @test subseq1 == subseq2 == subseq3
+            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
         end
 
         winlen = 4
@@ -151,9 +156,10 @@ x = A.*sin.(2π*frequency*t)
         [3, 4, 5, 6, 7]]
         subseqs2 = Subsequence(x, winlen, noverlap)
         subseqs3 = Subsequence(dfile, winlen, noverlap)
-        for (subseq1, subseq2, subseq3) in zip(subseqs1, subseqs2, subseqs3)
-            @test subseq1 == subseq2
-            @test subseq1 == subseq3
+        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+            @test subseq1 == subseq2 == subseq3
+            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
         end
 
     end
