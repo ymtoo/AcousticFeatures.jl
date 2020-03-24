@@ -7,7 +7,7 @@ using .Subsequences, .Utils
 
 using AlphaStableDistributions, DSP, Peaks, StatsBase
 
-export Energy, Myriad, FrequencyContours, Score, Subsequence
+export Energy, Myriad, FrequencyContours, SoundPressureLevel, Score, Subsequence
 
 abstract type AbstractAcousticFeature end
 
@@ -32,6 +32,11 @@ struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     minfdist::T
     mintlen::T
 end
+
+struct SoundPressureLevel{T<:Real} <: AbstractAcousticFeature
+    ref::T
+end
+SoundPressureLevel() = SoundPressureLevel(1.0)
 
 mutable struct Score{VT1<:AbstractVector{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
@@ -109,6 +114,14 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     deleteat!(ctrs, idxdelete)
     count = isempty(ctrs) ? 0 : sum(length, ctrs)
     count/length(p)
+end
+
+"""
+Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In water, the common reference is 1 micropascal. In air, the common reference is 20 micropascal.
+"""
+function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
+    rmsx = sqrt(mean(abs2.(x)))
+    20*log10(rmsx/f.ref)
 end
 
 

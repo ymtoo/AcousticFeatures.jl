@@ -2,22 +2,21 @@ using AcousticFeatures
 
 using AcousticFeatures.Utils
 
-using AlphaStableDistributions, Distributions, LazyWAVFiles, Test, WAV
+using AlphaStableDistributions, Distributions, LazyWAVFiles, SignalAnalysis, Test, WAV
 tmpdir = mktempdir()
 fs = 100_000
 A = 1.0
 frequency = 10_000
 N = 100_000
 t = (0:N-1)./fs
-x = A.*sin.(2π*frequency*t)
 
 @testset "AcousticFeatures" begin
-
 
 
     @testset "Energy" begin
         @info "Testing Energy"
 
+        x = A.*sin.(2π*frequency*t)
         @test Score(Energy(), x).s[1] ≈ (A^2)/2
         winlens = [1_000, 10_000, 1_001, 10_001]
         noverlaps = [0, 100, 500]
@@ -71,14 +70,13 @@ x = A.*sin.(2π*frequency*t)
     @testset "FrequencyContours" begin
         @info "Testing FrequencyContours"
 
-
         fs = 100_000
         N = 100_000
         duration = N/fs
         f11 = 10_000; f21 = 50_000
         f12 = 1_000; f22 = 20_000
-        x1 = chirp(f11, f21, duration, fs)+chirp(f12, f22, duration, fs)
-        x2 = chirp(f11, f21, duration, fs)
+        x1 = real(chirp(f11, f21, duration, fs).data)+real(chirp(f12, f22, duration, fs).data)
+        x2 = real(chirp(f11, f21, duration, fs).data)
         n = 512
         tnorm = 1.0
         fd = 1000.0
@@ -91,23 +89,54 @@ x = A.*sin.(2π*frequency*t)
         winlens = [10_000, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(x, winlen, noverlap)
+            subseq = Subsequence(x1, winlen, noverlap)
             sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x1, winlen=winlen, noverlap=noverlap)
             sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x2, winlen=winlen, noverlap=noverlap)
-            spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(x)-subseq.winlen÷2)]
-            spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(x)-subseq.winlen÷2)]
+            spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(x1)-subseq.winlen÷2)]
+            spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(x1)-subseq.winlen÷2)]
             @test all(isless.(spart2, spart1))
         end
-        WAV.wavwrite(x[1:N÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
-        WAV.wavwrite(x[N÷2:end], joinpath(tmpdir, "2.wav"), Fs=fs)
+        tmpdir1 = mktempdir()
+        tmpdir2 = mktempdir()
+        WAV.wavwrite(x1[1:N÷2], joinpath(tmpdir1, "1.wav"), Fs=fs)
+        WAV.wavwrite(x1[N÷2:end], joinpath(tmpdir1, "2.wav"), Fs=fs)
+        WAV.wavwrite(x2[1:N÷2], joinpath(tmpdir2, "1.wav"), Fs=fs)
+        WAV.wavwrite(x2[N÷2:end], joinpath(tmpdir2, "2.wav"), Fs=fs)
+        dfile1 = DistributedWAVFile(tmpdir1)
+        dfile2 = DistributedWAVFile(tmpdir2)
+        for winlen in winlens, noverlap in noverlaps
+            subseq = Subsequence(dfile1, winlen, noverlap)
+            sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), dfile1, winlen=winlen, noverlap=noverlap)
+            sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), dfile2, winlen=winlen, noverlap=noverlap)
+            spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(dfile1)-subseq.winlen÷2)]
+            spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(dfile1)-subseq.winlen÷2)]
+            @test all(isless.(spart2, spart1))
+        end
+    end
+
+    @testset "SoundPressureLevel" begin
+        @info "Testing SoundPressureLevel"
+
+        x = A.*sin.(2π*frequency*t)
+        x = pressure(x, 0.0, 0.0)
+        sc = Score(SoundPressureLevel(), x)
+        @test sc.s[1] ≈ 20*log10(1/sqrt(2))
+        winlens = [1_000, 10_000, 1_001, 10_001]
+        noverlaps = [0, 100, 500]
+        for winlen in winlens, noverlap in noverlaps
+            subseq = Subsequence(x, winlen, noverlap)
+            sc = Score(SoundPressureLevel(), x; winlen=winlen, noverlap=noverlap)
+            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
+            @test all(isapprox.(spart, repeat([20*log10(1/sqrt(2))], length(spart)), atol=0.01))
+        end
+        WAV.wavwrite(x[1:length(x)÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
+        WAV.wavwrite(x[length(x)÷2:end], joinpath(tmpdir, "2.wav"), Fs=fs)
         dfile = DistributedWAVFile(tmpdir)
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(dfile, winlen, noverlap)
-            sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x1, winlen=winlen, noverlap=noverlap)
-            sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x2, winlen=winlen, noverlap=noverlap)
-            spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(x)-subseq.winlen÷2)]
-            spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(x)-subseq.winlen÷2)]
-            @test all(isless.(spart2, spart1))
+            sc = Score(SoundPressureLevel(), dfile; winlen=winlen, noverlap=noverlap)
+            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
+            @test all(isapprox.(spart, repeat([20*log10(1/sqrt(2))], length(spart)), atol=0.01))
         end
     end
 
@@ -132,9 +161,6 @@ x = A.*sin.(2π*frequency*t)
         for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
             @test subseq1 == subseq2 == subseq3
             @test subseqs1[i] == subseqs2[i] == subseqs3[i]
-        end
-        for i in 1:length(subseqs1)
-
         end
 
         winlen = 3
@@ -175,6 +201,15 @@ x = A.*sin.(2π*frequency*t)
         xfilt = x - [[1.0 2.0 3.0 4.0 5.0 6.0 6.0]; [8.0 9.0 10.0 11.0 12.0 13.0 13.0]]
         @test spectrumflatten(x, Nnorm) == xfilt
 
+        nbits = 16
+        vref = 1.0
+        xvolt = vref.*real(cw(64, 1, 512).data)
+        xbit = xvolt*(2^(nbits-1))
+        sensitivity = 0.0
+        gain = 0.0
+        p1 = pressure(xvolt, sensitivity, gain)
+        p2 = pressure(xbit, sensitivity, gain, voltparams=(nbits, vref))
+        @test p1 == p2
     end
 
 end
