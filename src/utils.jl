@@ -1,14 +1,6 @@
-module Utils
+"""Utility functions"""
 
-using Statistics, AlphaStableDistributions
-
-include("subsequences.jl")
-
-using .Subsequences
-
-export spectrumflatten, myriadconstant, pressure
-
-function spectrumflatten(x::AbstractArray{T, 1}, Nnorm::Int) where T <:Real
+function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
     if Nnorm >= length(x)
         xfilt = x.-median(x)
         xfilt[xfilt.<0] .= 0
@@ -23,7 +15,7 @@ function spectrumflatten(x::AbstractArray{T, 1}, Nnorm::Int) where T <:Real
     xfilt
 end
 
-function spectrumflatten(x::AbstractArray{T, 2}, Nnorm::Int) where T <: Real
+function spectrumflatten(x::AbstractArray{T,2}, Nnorm::Int) where T <: Real
     xfilt = zeros(Float64, size(x))
     for (i, row) in enumerate(eachrow(x))
         xfilt[i, :] = spectrumflatten(row, Nnorm)
@@ -56,7 +48,7 @@ end
 """
 Get myriad constant given estimated α and scale
 """
-function myriadconstant(x::AbstractArray{T, 1}) where T<:Real
+function myriadconstant(x::AbstractArray{T,1}) where T<:Real
     d = fit(AlphaStable, x)
     myriadconstant(d.α, d.scale)
 end
@@ -74,4 +66,9 @@ function pressure(x::AbstractVector{T}, sensitivity::T, gain::T; voltparams::Uni
     x./(ν*G)
 end
 
+"""
+Generate a Hilbert envelope of the real signal `x`.
+"""
+function envelope(x::AbstractVector{T}) where T<:Real
+    abs.(hilbert(x))
 end

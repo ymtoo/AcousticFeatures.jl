@@ -1,13 +1,12 @@
 using AcousticFeatures
 
-using AcousticFeatures.Utils
-
 using AlphaStableDistributions, Distributions, LazyWAVFiles, SignalAnalysis, Test, WAV
+
 tmpdir = mktempdir()
 fs = 100_000
+N = 100_000
 A = 1.0
 frequency = 10_000
-N = 100_000
 t = (0:N-1)./fs
 
 @testset "AcousticFeatures" begin
@@ -42,9 +41,7 @@ t = (0:N-1)./fs
 
         α = 1.9999
         scale = 1.0
-        N = 100_000
         x = rand(AlphaStable(α=α, scale=scale), N)
-        N = length(x)
         d = fit(AlphaStable, x)
         sqKscale = myriadconstant(d.α, d.scale)
         @test Score(Myriad(), x).s[1]/N ≈ (log((d.α/(2-d.α+eps()))*(d.scale^2))) atol=0.1
@@ -70,8 +67,6 @@ t = (0:N-1)./fs
     @testset "FrequencyContours" begin
         @info "Testing FrequencyContours"
 
-        fs = 100_000
-        N = 100_000
         duration = N/fs
         f11 = 10_000; f21 = 50_000
         f12 = 1_000; f22 = 20_000
@@ -140,6 +135,15 @@ t = (0:N-1)./fs
         end
     end
 
+    @testset "CountImpulses" begin
+        @info "Testing CountImpulses"
+
+        trueindices = [101, 2254, 5322, 8888]
+        x = zeros(N)
+        x[trueindices] .= 1.0
+        x += 0.1 .* randn(N)
+        @test Score(CountImpulses(fs), x).s[1] == length(trueindices)
+    end
 
     @testset "Subsequences" begin
         x = [1, 2, 3, 4, 5, 6, 7]

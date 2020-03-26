@@ -1,13 +1,15 @@
 module AcousticFeatures
 
+using AlphaStableDistributions, DSP, Peaks, Statistics, StatsBase
+
 include("subsequences.jl")
 include("utils.jl")
 
-using .Subsequences, .Utils
+export Energy, Myriad, FrequencyContours, SoundPressureLevel, CountImpulses, Score
 
-using AlphaStableDistributions, DSP, Peaks, StatsBase
+export Subsequence
 
-export Energy, Myriad, FrequencyContours, SoundPressureLevel, Score, Subsequence
+export spectrumflatten, myriadconstant, pressure, envelope
 
 abstract type AbstractAcousticFeature end
 
@@ -18,7 +20,7 @@ abstract type AbstractAcousticFeature end
 ################################################################################
 struct Energy <: AbstractAcousticFeature end
 
-struct Myriad{T<:Union{Nothing, Real}} <: AbstractAcousticFeature
+struct Myriad{T<:Union{Nothing,Real}} <: AbstractAcousticFeature
     sqKscale::T
 end
 Myriad() = Myriad{Nothing}(nothing)
@@ -26,7 +28,7 @@ Myriad() = Myriad{Nothing}(nothing)
 struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     fs::FT
     n::Int
-    tnorm::Union{Nothing, T} #time constant for normalization (sec)
+    tnorm::Union{Nothing,T} #time constant for normalization (sec)
     fd::T #frequency difference from one step to the next (Hz)
     minhprc::T
     minfdist::T
@@ -37,6 +39,13 @@ struct SoundPressureLevel{T<:Real} <: AbstractAcousticFeature
     ref::T
 end
 SoundPressureLevel() = SoundPressureLevel(1.0)
+
+struct CountImpulses{FT<:Real,T<:Real} <: AbstractAcousticFeature
+    fs::FT
+    k::Int
+    tdist::T
+end
+CountImpulses(fs) = CountImpulses(fs, 10, 1e-3)
 
 mutable struct Score{VT1<:AbstractVector{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
@@ -122,6 +131,17 @@ Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In wate
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     rmsx = sqrt(mean(abs2.(x)))
     20*log10(rmsx/f.ref)
+end
+
+"""
+Score of `x` based on number of impulses. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
+"""
+function score(f::CountImpulses, x::AbstractVector{T}) where T<:Real
+    env = envelope(x)
+    height = median(env)+f.k*mad(env, normalize=false)
+    distance = trunc(Int, f.tdist*f.fs)
+    crds, _ = Peaks.peakprom(env, Maxima(), distance, height)
+    length(crds)
 end
 
 
