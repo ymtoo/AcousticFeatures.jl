@@ -8,6 +8,8 @@ The acoustic features are:
 - Energy
 - Myriad
 - Frequency Contours
+- Sound Pressure Level
+- Number of Impulses
 
 ## Installation
 using Pkg; pkg"add https://github.com/ymtoo/AcousticFeatures.jl.git"
