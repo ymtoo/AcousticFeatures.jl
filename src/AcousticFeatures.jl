@@ -5,7 +5,7 @@ using AlphaStableDistributions, DSP, Peaks, Statistics, StatsBase
 include("subsequences.jl")
 include("utils.jl")
 
-export Energy, Myriad, FrequencyContours, SoundPressureLevel, CountImpulses, Score
+export Energy, Myriad, FrequencyContours, SoundPressureLevel, CountImpulses, AlphaStableStats, Score
 
 export Subsequence
 
@@ -47,7 +47,9 @@ struct CountImpulses{FT<:Real,T<:Real} <: AbstractAcousticFeature
 end
 CountImpulses(fs) = CountImpulses(fs, 10, 1e-3)
 
-mutable struct Score{VT1<:AbstractVector{<:Real},VT2<:AbstractRange{Int}}
+struct AlphaStableStats <: AbstractAcousticFeature end
+
+mutable struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
     indices::VT2
 end
@@ -57,11 +59,13 @@ end
 #
 ################################################################################
 
+outputlength(::Energy) = 1
 """
     Score of `x` based on mean energy.
 """
 score(::Energy, x::AbstractVector{T}) where T<:Real = mean(abs2, x)
 
+outputlength(::Myriad{S}) where S<:Real = 1
 """
     Score of `x` based on myriad
 
@@ -74,8 +78,10 @@ function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real, S<:Real}
     sum(x -> log(sqKscale + abs2(x)), x)
 end
 
+
 score(f::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
+outputlength(::FrequencyContours) = 1
 """
     Score of `x` based on frequency contours count
 
@@ -125,6 +131,7 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     count/length(p)
 end
 
+outputlength(::SoundPressureLevel) = 1
 """
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In water, the common reference is 1 micropascal. In air, the common reference is 20 micropascal.
 """
@@ -133,6 +140,7 @@ function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     20*log10(rmsx/f.ref)
 end
 
+outputlength(::CountImpulses) = 1
 """
 Score of `x` based on number of impulses. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
 """
@@ -144,20 +152,34 @@ function score(f::CountImpulses, x::AbstractVector{T}) where T<:Real
     length(crds)
 end
 
+outputlength(::AlphaStableStats) = 2
+"""
+Score of `x` based on the parameters of Symmetric Alpha Stable Distributions. The parameter α measures the impulsiveness while the parameter scale measures the width of the distributions.
+"""
+function score(f::AlphaStableStats, x::AbstractVector{T}) where T<:Real
+    d = fit(AlphaStable, x)
+    [d.α d.scale]
+end
+
 
 function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=length(x), noverlap::Int=0, subseqtype::DataType=Float64, preprocess::Function=x->x) where {T<:Real, N, L}
     xlen = length(x)
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
         subseqs = Subsequence(x, winlen, noverlap)
-        sc = Score(zeros(subseqtype, length(subseqs)), 1:subseqs.step:xlen)
+        sc = Score(zeros(subseqtype, length(subseqs), outputlength(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
-        return Score([score(f, preprocess(convert.(subseqtype, x)))], 1:1)
+        stmp = score(f, preprocess(convert.(subseqtype, x)))
+        if stmp isa Number
+            return Score(reshape([stmp], (1, 1)), 1:1)
+        else
+            return Score(stmp, 1:1)
+        end
     else
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
     for (i, subseq) in enumerate(subseqs)
-        sc.s[i] = score(f, preprocess(convert.(subseqtype, subseq)))
+        sc.s[i, :] .= score(f, preprocess(convert.(subseqtype, subseq)))
     end
     sc
 end

@@ -80,7 +80,7 @@ t = (0:N-1)./fs
         mintlen = 0.05
         sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x1)
         sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x2)
-        @test sc1.s > sc2.s
+        @test sc1.s[1] > sc2.s[1]
         winlens = [10_000, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
@@ -143,6 +143,19 @@ t = (0:N-1)./fs
         x[trueindices] .= 1.0
         x += 0.1 .* randn(N)
         @test Score(CountImpulses(fs), x).s[1] == length(trueindices)
+    end
+
+    @testset "AlphaStableStats" begin
+        @info "Testing AlphaStableStats"
+
+        α = 1.6
+        scale = 2.0
+        d = AlphaStable(α=α, scale=scale)
+        x = rand(d, N)
+        sc = Score(AlphaStableStats(), x).s[1, :]
+        @test sc[1] ≈ α atol=0.1
+        @test sc[2] ≈ scale atol=0.1
+
     end
 
     @testset "Subsequences" begin
