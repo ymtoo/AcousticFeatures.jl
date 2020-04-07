@@ -64,7 +64,7 @@ outputeltype(::Energy) = Float64
 """
     Score of `x` based on mean energy.
 """
-score(::Energy, x::AbstractVector{T}) where T<:Real = mean(abs2, x)
+score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 
 outputlength(::Myriad{S}) where S<:Real = 1
 outputeltype(::Myriad{S}) where S<:Real = Float64
@@ -77,7 +77,7 @@ outputeltype(::Myriad{S}) where S<:Real = Float64
 """
 function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real, S<:Real}
     sqKscale = f.sqKscale
-    sum(x -> log(sqKscale + abs2(x)), x)
+    [sum(x -> log(sqKscale + abs2(x)), x)]
 end
 
 
@@ -131,7 +131,7 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     end
     deleteat!(ctrs, idxdelete)
     count = isempty(ctrs) ? 0 : sum(length, ctrs)
-    count/length(p)
+    [count/length(p)]
 end
 
 outputlength(::SoundPressureLevel) = 1
@@ -141,7 +141,7 @@ Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In wate
 """
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     rmsx = sqrt(mean(abs2.(x)))
-    20*log10(rmsx/f.ref)
+    [20*log10(rmsx/f.ref)]
 end
 
 outputlength(::CountImpulses) = 1
@@ -154,7 +154,7 @@ function score(f::CountImpulses, x::AbstractVector{T}) where T<:Real
     height = median(env)+f.k*mad(env, normalize=false)
     distance = trunc(Int, f.tdist*f.fs)
     crds, _ = Peaks.peakprom(env, Maxima(), distance, height)
-    length(crds)
+    [length(crds)]
 end
 
 outputlength(::AlphaStableStats) = 2
@@ -185,7 +185,7 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
     for (i, subseq) in enumerate(subseqs)
-        sc.s[i, :] .= score(f, preprocess(convert.(subseqtype, subseq)))
+        sc.s[i, :] = score(f, preprocess(convert.(subseqtype, subseq)))
     end
     sc
 end
