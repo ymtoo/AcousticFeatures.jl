@@ -60,12 +60,14 @@ end
 ################################################################################
 
 outputlength(::Energy) = 1
+outputeltype(::Energy) = Float64
 """
     Score of `x` based on mean energy.
 """
 score(::Energy, x::AbstractVector{T}) where T<:Real = mean(abs2, x)
 
 outputlength(::Myriad{S}) where S<:Real = 1
+outputeltype(::Myriad{S}) where S<:Real = Float64
 """
     Score of `x` based on myriad
 
@@ -82,6 +84,7 @@ end
 score(f::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
 outputlength(::FrequencyContours) = 1
+outputeltype(::FrequencyContours) = Float64
 """
     Score of `x` based on frequency contours count
 
@@ -132,6 +135,7 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
 end
 
 outputlength(::SoundPressureLevel) = 1
+outputeltype(::SoundPressureLevel) = Float64
 """
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In water, the common reference is 1 micropascal. In air, the common reference is 20 micropascal.
 """
@@ -141,6 +145,7 @@ function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
 end
 
 outputlength(::CountImpulses) = 1
+outputeltype(::CountImpulses) = Int64
 """
 Score of `x` based on number of impulses. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
 """
@@ -153,6 +158,7 @@ function score(f::CountImpulses, x::AbstractVector{T}) where T<:Real
 end
 
 outputlength(::AlphaStableStats) = 2
+outputeltype(::AlphaStableStats) = Float64
 """
 Score of `x` based on the parameters of Symmetric Alpha Stable Distributions. The parameter α measures the impulsiveness while the parameter scale measures the width of the distributions.
 """
@@ -167,7 +173,7 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
         subseqs = Subsequence(x, winlen, noverlap)
-        sc = Score(zeros(subseqtype, length(subseqs), outputlength(f)), 1:subseqs.step:xlen)
+        sc = Score(zeros(outputeltype(f), length(subseqs), outputlength(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
         if stmp isa Number
