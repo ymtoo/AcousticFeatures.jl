@@ -155,7 +155,8 @@ Score of `x` based on number of impulses. The minimum height of impulses is defi
 """
 function score(f::CountImpulses, x::AbstractVector{T}) where T<:Real
     env = envelope(x)
-    height = median(env)+f.k*mad(env, normalize=false)
+    center = Statistics.median(x)
+    height = center+f.k*mad(x, center=center, normalize=false)
     distance = trunc(Int, f.tdist*f.fs)
     crds, _ = Peaks.peakprom(env, Maxima(), distance, height)
     [length(crds)]
@@ -194,7 +195,7 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
     else
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
-    for (i, subseq) in enumerate(subseqs)
+    @inbounds for (i, subseq) in enumerate(subseqs)
         sc.s[i, :] = score(f, preprocess(convert.(subseqtype, subseq)))
     end
     sc
