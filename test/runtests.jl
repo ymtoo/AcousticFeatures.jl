@@ -195,8 +195,9 @@ t = (0:N-1)./fs
 
         winlen = 4
         noverlap = 1
-        subseqs1 = [[0, 0, 1, 2, 3],
-        [3, 4, 5, 6, 7]]
+        subseqs1 = [[0, 1, 2, 3],
+                    [3, 4, 5, 6],
+                    [6, 7, 0, 0]]
         subseqs2 = Subsequence(x, winlen, noverlap)
         subseqs3 = Subsequence(dfile, winlen, noverlap)
         @test length(subseqs1) == length(subseqs2) == length(subseqs3)

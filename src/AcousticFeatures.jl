@@ -49,6 +49,10 @@ CountImpulses(fs) = CountImpulses(fs, 10, 1e-3)
 
 struct AlphaStableStats <: AbstractAcousticFeature end
 
+struct MaxDemonSpectrum{FT<:Real} <: AbstractAcousticFeature
+    fs::FT
+end
+
 mutable struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
     indices::VT2
@@ -167,6 +171,12 @@ function score(f::AlphaStableStats, x::AbstractVector{T}) where T<:Real
     [d.α d.scale]
 end
 
+outputlength(::MaxDemonSpectrum) = 1
+"""
+"""
+function score(f::MaxDemonSpectrum, x::AbstractVector{T}) where T<:Real
+    xd = demon(x, fs=f.fs)
+end
 
 function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=length(x), noverlap::Int=0, subseqtype::DataType=Float64, preprocess::Function=x->x) where {T<:Real, N, L}
     xlen = length(x)

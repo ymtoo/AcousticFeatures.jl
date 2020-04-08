@@ -3,28 +3,39 @@ struct Subsequence
     winlen::Int
     noverlap::Int
     step::Int
-    padlen::Int
+    lpadlen::Int
+    rpadlen::Int
 end
 
 function Subsequence(c, winlen, noverlap)
-    winlen = (mod(winlen, 2) == 0) ? winlen+1 : winlen
+#    winlen = (mod(winlen, 2) == 0) ? winlen+1 : winlen
     winlen > length(c) && throw(ArgumentError("`winlen` has to be smaller than the signal length."))
     step = winlen-noverlap
-    padlen = winlen÷2
-    Subsequence(c, winlen, noverlap, step, padlen)
+    if mod(winlen, 2) == 0
+        lpadlen = (winlen-1)÷2
+        rpadlen = winlen÷2
+    else
+        lpadlen = rpadlen = winlen÷2
+    end
+#    padlen = winlen÷2
+    Subsequence(c, winlen, noverlap, step, lpadlen, rpadlen)
 end
 
-function Base.iterate(itr::Subsequence, state=1)
-    state > length(itr.c) && return nothing
-    if state <= itr.padlen
-        return vcat(zeros(eltype(itr.c), itr.padlen-(state-1)), itr.c[1:state+itr.padlen]), state+itr.step
-    elseif state >= length(itr.c)-itr.padlen
-        return vcat(itr.c[state-itr.padlen:end], zeros(eltype(itr.c), itr.padlen-(length(itr.c)-state))), state+itr.step
+function Base.iterate(subseq::Subsequence, state=1)
+    lenc = length(subseq.c)
+    state > lenc && return nothing
+    if state <= subseq.lpadlen
+#        return vcat(zeros(eltype(itr.c), itr.padlen-(state-1)), view(itr.c, 1:state+itr.padlen)), state+itr.step
+        return vcat(zeros(eltype(subseq.c), subseq.lpadlen-(state-1)), subseq.c[1:state+subseq.rpadlen]), state+subseq.step
+    elseif state >= lenc-subseq.rpadlen
+#        return vcat(view(itr.c, state-itr.padlen:lenc), zeros(eltype(itr.c), itr.padlen-(lenc-state))), state+itr.step
+        return vcat(subseq.c[state-subseq.lpadlen:end], zeros(eltype(subseq.c), subseq.rpadlen-(lenc-state))), state+subseq.step
     else
-        return itr.c[state-itr.padlen:state+itr.padlen], state+itr.step
+#        return view(itr.c, state-itr.padlen:state+itr.padlen), state+itr.step
+        return subseq.c[state-subseq.lpadlen:state+subseq.rpadlen], state+subseq.step
     end
 end
 
-Base.length(itr::Subsequence) = ceil(Int64, length(itr.c)/itr.step)
+Base.length(subseq::Subsequence) = ceil(Int64, length(subseq.c)/subseq.step)
 
-Base.getindex(itr::Subsequence, i::Number) = iterate(itr, (1:itr.step:length(itr.c))[i])[1]
+Base.getindex(subseq::Subsequence, i::Number) = iterate(subseq, (1:subseq.step:length(subseq.c))[i])[1]
