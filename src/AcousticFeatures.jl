@@ -160,7 +160,7 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     distance = trunc(Int, f.tdist*f.fs)
     crds, _ = Peaks.peakprom(env, Maxima(), distance, height)
     timeintervals = diff(crds)
-    [length(crds) mean(timeintervals) var(timeintervals)]
+    [length(crds) mean(timeintervals)/f.fs var(timeintervals)/f.fs]
 end
 
 outputlength(::AlphaStableStats) = 2

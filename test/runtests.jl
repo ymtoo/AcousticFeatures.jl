@@ -145,8 +145,8 @@ t = (0:N-1)./fs
         sc = Score(ImpulseStats(fs), x)
         @test sc.s[1, 1] == length(trueindices)
         truetimeintervals = diff(trueindices)
-        @test sc.s[1, 2] == mean(truetimeintervals)
-        @test sc.s[1, 3] == var(truetimeintervals)
+        @test sc.s[1, 2] == mean(truetimeintervals)/fs
+        @test sc.s[1, 3] == var(truetimeintervals)/fs
     end
 
     @testset "AlphaStableStats" begin
