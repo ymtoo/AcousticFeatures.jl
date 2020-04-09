@@ -9,7 +9,8 @@ The acoustic features are:
 - Myriad
 - Frequency Contours
 - Sound Pressure Level
-- Number of Impulses
+- Impulse Statistics (number of impulses, mean and variance of inter-impulse intervals)
+- Alpha Stable Statistics (α and scale)
 
 ## Installation
 using Pkg; pkg"add https://github.com/ymtoo/AcousticFeatures.jl.git"
