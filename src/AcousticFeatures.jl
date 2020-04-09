@@ -5,7 +5,7 @@ using AlphaStableDistributions, DSP, Peaks, Statistics, StatsBase
 include("subsequences.jl")
 include("utils.jl")
 
-export Energy, Myriad, FrequencyContours, SoundPressureLevel, CountImpulses, AlphaStableStats, Score
+export Energy, Myriad, FrequencyContours, SoundPressureLevel, ImpulseStats, AlphaStableStats, Score
 
 export Subsequence
 
@@ -40,12 +40,12 @@ struct SoundPressureLevel{T<:Real} <: AbstractAcousticFeature
 end
 SoundPressureLevel() = SoundPressureLevel(1.0)
 
-struct CountImpulses{FT<:Real,T<:Real} <: AbstractAcousticFeature
+struct ImpulseStats{FT<:Real,T<:Real} <: AbstractAcousticFeature
     fs::FT
     k::Int
     tdist::T
 end
-CountImpulses(fs) = CountImpulses(fs, 10, 1e-3)
+ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3)
 
 struct AlphaStableStats <: AbstractAcousticFeature end
 
@@ -148,18 +148,19 @@ function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     [20*log10(rmsx/f.ref)]
 end
 
-outputlength(::CountImpulses) = 1
-outputeltype(::CountImpulses) = Int64
+outputlength(::ImpulseStats) = 3
+outputeltype(::ImpulseStats) = Float64
 """
-Score of `x` based on number of impulses. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
+Score of `x` based on number of impulses, mean and variance of inter-impulse intervals. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
 """
-function score(f::CountImpulses, x::AbstractVector{T}) where T<:Real
+function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     env = envelope(x)
     center = Statistics.median(x)
     height = center+f.k*mad(x, center=center, normalize=false)
     distance = trunc(Int, f.tdist*f.fs)
     crds, _ = Peaks.peakprom(env, Maxima(), distance, height)
-    [length(crds)]
+    timeintervals = diff(crds)
+    [length(crds) mean(timeintervals) var(timeintervals)]
 end
 
 outputlength(::AlphaStableStats) = 2

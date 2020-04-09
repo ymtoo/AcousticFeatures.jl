@@ -135,14 +135,18 @@ t = (0:N-1)./fs
         end
     end
 
-    @testset "CountImpulses" begin
-        @info "Testing CountImpulses"
+    @testset "ImpulseStats" begin
+        @info "Testing ImpulseStats"
 
         trueindices = [101, 2254, 5322, 8888]
         x = zeros(N)
         x[trueindices] .= 1.0
         x += 0.1 .* randn(N)
-        @test Score(CountImpulses(fs), x).s[1] == length(trueindices)
+        sc = Score(ImpulseStats(fs), x)
+        @test sc.s[1, 1] == length(trueindices)
+        truetimeintervals = diff(trueindices)
+        @test sc.s[1, 2] == mean(truetimeintervals)
+        @test sc.s[1, 3] == var(truetimeintervals)
     end
 
     @testset "AlphaStableStats" begin
