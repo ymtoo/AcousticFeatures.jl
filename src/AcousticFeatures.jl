@@ -44,8 +44,10 @@ struct ImpulseStats{FT<:Real,T<:Real} <: AbstractAcousticFeature
     fs::FT
     k::Int
     tdist::T
+    computeenvelope::Bool
 end
-ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3)
+ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3, true)
+ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true)
 
 struct AlphaStableStats <: AbstractAcousticFeature end
 
@@ -154,11 +156,13 @@ outputeltype(::ImpulseStats) = Float64
 Score of `x` based on number of impulses, mean and variance of inter-impulse intervals. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
 """
 function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
-    env = envelope(x)
+    if f.computeenvelope
+        x = envelope(x)
+    end
     center = Statistics.median(x)
     height = center+f.k*mad(x, center=center, normalize=false)
     distance = trunc(Int, f.tdist*f.fs)
-    crds, _ = Peaks.peakprom(env, Maxima(), distance, height)
+    crds, _ = Peaks.peakprom(x, Maxima(), distance, height)
     timeintervals = diff(crds)
     [length(crds) mean(timeintervals)/f.fs var(timeintervals)/f.fs]
 end
