@@ -65,14 +65,14 @@ end
 #
 ################################################################################
 
-outputlength(::Energy) = 1
+outputndims(::Energy) = 1
 outputeltype(::Energy) = Float64
 """
     Score of `x` based on mean energy.
 """
 score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 
-outputlength(::Myriad{S}) where S<:Real = 1
+outputndims(::Myriad{S}) where S<:Real = 1
 outputeltype(::Myriad{S}) where S<:Real = Float64
 """
     Score of `x` based on myriad
@@ -86,10 +86,9 @@ function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real, S<:Real}
     [sum(x -> log(sqKscale + abs2(x)), x)]
 end
 
-
 score(f::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
-outputlength(::FrequencyContours) = 1
+outputndims(::FrequencyContours) = 1
 outputeltype(::FrequencyContours) = Float64
 """
     Score of `x` based on frequency contours count
@@ -140,7 +139,7 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     [count/length(p)]
 end
 
-outputlength(::SoundPressureLevel) = 1
+outputndims(::SoundPressureLevel) = 1
 outputeltype(::SoundPressureLevel) = Float64
 """
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In water, the common reference is 1 micropascal. In air, the common reference is 20 micropascal.
@@ -150,7 +149,7 @@ function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     [20*log10(rmsx/f.ref)]
 end
 
-outputlength(::ImpulseStats) = 3
+outputndims(::ImpulseStats) = 3
 outputeltype(::ImpulseStats) = Float64
 """
 Score of `x` based on number of impulses, mean and variance of inter-impulse intervals. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
@@ -167,7 +166,7 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     [length(crds) mean(timeintervals)/f.fs var(timeintervals)/f.fs]
 end
 
-outputlength(::AlphaStableStats) = 2
+outputndims(::AlphaStableStats) = 2
 outputeltype(::AlphaStableStats) = Float64
 """
 Score of `x` based on the parameters of Symmetric Alpha Stable Distributions. The parameter α measures the impulsiveness while the parameter scale measures the width of the distributions.
@@ -177,7 +176,7 @@ function score(f::AlphaStableStats, x::AbstractVector{T}) where T<:Real
     [d.α d.scale]
 end
 
-outputlength(::MaxDemonSpectrum) = 1
+outputndims(::MaxDemonSpectrum) = 1
 """
 """
 function score(f::MaxDemonSpectrum, x::AbstractVector{T}) where T<:Real
@@ -189,7 +188,7 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
         subseqs = Subsequence(x, winlen, noverlap)
-        sc = Score(zeros(outputeltype(f), length(subseqs), outputlength(f)), 1:subseqs.step:xlen)
+        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
         if stmp isa Number
