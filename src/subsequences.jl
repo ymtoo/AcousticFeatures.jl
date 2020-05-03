@@ -9,15 +9,20 @@ struct Subsequence
     rpadlen::Int
 end
 
-function Subsequence(c::AbstractVector{T}, winlen, noverlap; fill=zero(T)) where T
-    winlen > length(c) && throw(ArgumentError("`winlen` has to be smaller than the signal length."))
-    step = winlen-noverlap
+function getpadlen(winlen)
     if mod(winlen, 2) == 0
         lpadlen = (winlen-1)÷2
         rpadlen = winlen÷2
     else
         lpadlen = rpadlen = winlen÷2
     end
+    lpadlen, rpadlen
+end
+
+function Subsequence(c::AbstractVector{T}, winlen, noverlap; fill=zero(T)) where T
+    winlen > length(c) && throw(ArgumentError("`winlen` has to be smaller than the signal length."))
+    step = winlen-noverlap
+    lpadlen, rpadlen = getpadlen(winlen)
     Subsequence(PaddedView(fill, c, (1-lpadlen:length(c)+rpadlen,)), winlen, noverlap, step, lpadlen, rpadlen)
 end
 
