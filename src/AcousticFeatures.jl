@@ -2,6 +2,9 @@ module AcousticFeatures
 
 using AlphaStableDistributions, DSP, Peaks, Statistics, StatsBase
 
+using Distributed
+addprocs(length(Sys.cpu_info())-1)
+
 include("subsequences.jl")
 include("utils.jl")
 
@@ -188,7 +191,7 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
         subseqs = Subsequence(x, winlen, noverlap)
-        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
+#        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
         if stmp isa Number
@@ -199,11 +202,15 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
     else
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
-    @inbounds for (i, subseq) in enumerate(subseqs)
-        sc.s[i, :] = score(f, preprocess(convert.(subseqtype, subseq)))
-    end
-    sc
+    s = pmap(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
+    Score(reshape(vcat(s...), (length(s), length(s[1]))), 1:subseqs.step:xlen)
+    # @inbounds for (i, subseq) in enumerate(subseqs)
+    #     sc.s[i, :] = score(f, preprocess(convert.(subseqtype, subseq)))
+    # end
+    # sc
 end
+
+
 
 (f::AbstractAcousticFeature)(x) = Score(f, x)
 
