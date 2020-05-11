@@ -25,8 +25,10 @@ struct Energy <: AbstractAcousticFeature end
 
 struct Myriad{T<:Union{Nothing,Real}} <: AbstractAcousticFeature
     sqKscale::T
+    demean::Bool
 end
-Myriad() = Myriad{Nothing}(nothing)
+Myriad() = Myriad{Nothing}(nothing, true)
+Myriad(sqKscale) = Myriad(sqKscale, true)
 
 struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     fs::FT
@@ -86,7 +88,8 @@ outputeltype(::Myriad{S}) where S<:Real = Float64
 """
 function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real, S<:Real}
     sqKscale = f.sqKscale
-    [sum(x -> log(sqKscale + abs2(x)), x)]
+
+    [sum(x -> log(sqKscale + abs2(x)), f.demean ? x .- StatsBase.median(x) : x  )]
 end
 
 score(f::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
