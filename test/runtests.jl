@@ -1,6 +1,6 @@
 using AcousticFeatures
 
-using AlphaStableDistributions, Distributions, LazyWAVFiles, SignalAnalysis, Test, WAV
+using AlphaStableDistributions, Distributions, LazyWAVFiles, LinearAlgebra, SignalAnalysis, Test, WAV
 
 tmpdir = mktempdir()
 fs = 100_000
@@ -62,6 +62,32 @@ t = (0:N-1)./fs
             spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
         end
+    end
+
+    @testset "VMyriad" begin
+        @info "Testing VMyriad"
+
+        # α = 1.3
+        # identitymatrix = zeros(5, 5)
+        # identitymatrix[diagind(identitymatrix)] .= 1.0
+        # d = AlphaSubGaussian(α=α, n=N)
+        # x = rand(d)
+        # d̂ = fit(AlphaSubGaussian, x, 4)
+
+        α = 1.3
+        d = AlphaSubGaussian(;α=α, n=N)
+        x = rand(d)
+        d̂ = fit(AlphaSubGaussian, x, 4)
+
+        f0 = VMyriad(vmyriadconstant(d̂.α, d̂.R)...)
+        f1 = VMyriad(vmyriadconstant(1.8, d̂.R)...)
+        identitymatrix = zeros(5, 5)
+        identitymatrix[diagind(identitymatrix)] .= 1.0
+        f2 = VMyriad(vmyriadconstant(1.8, identitymatrix)...)
+
+        @test Score(f0, x).s[1] ≈ Score(VMyriad(vmyriadconstant(d̂.α, d̂.R)...), x).s[1]
+        @test Score(f0, x).s[1] < Score(f1, x).s[1]
+        @test Score(f0, x).s[1] < Score(f2, x).s[1]
     end
 
     @testset "FrequencyContours" begin
