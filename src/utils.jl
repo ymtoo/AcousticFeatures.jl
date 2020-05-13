@@ -1,5 +1,10 @@
 """Utility functions"""
 
+"""
+Compute the squared L2 norm.
+"""
+norm²(x) = sum(abs2.(x))
+
 function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
     if Nnorm >= length(x)
         xfilt = x.-median(x)
@@ -24,18 +29,31 @@ function spectrumflatten(x::AbstractArray{T,2}, Nnorm::Int) where T <: Real
 end
 
 """
-Get myriad constant given α and scale
+Get myriad constant given α and scale.
 """
 function myriadconstant(α, scale)
     (α/(2-α+eps()))*(scale^2)
 end
 
 """
-Get myriad constant given estimated α and scale
+Get myriad constant given `x`.
 """
-function myriadconstant(x::AbstractArray{T,1}) where T<:Real
+function myriadconstant(x::AbstractVector{T}) where T<:Real
     d = fit(AlphaStable, x)
     myriadconstant(d.α, d.scale)
+end
+
+"""
+Get vector myriad constants given α and Rₘ.
+"""
+vmyriadconstant(α::T, Rₘ::AbstractMatrix{T}) where T = (α/(2-α+eps())), Rₘ
+
+"""
+Get vector myriad constants given `x`.
+"""
+function vmyriadconstant(x::AbstractVector{T}, m::Integer=4) where T<:Real
+    d = fit(AlphaSubGaussian, x, m)
+    vmyriadconstant(d.α, d.R)
 end
 
 """
