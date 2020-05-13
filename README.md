@@ -7,6 +7,7 @@ This package implements a set of generic acoustic features for time series acous
 The acoustic features are:
 - Energy
 - Myriad
+- Vector Myriad
 - Frequency Contours
 - Sound Pressure Level
 - Impulse Statistics (number of impulses, mean and variance of inter-impulse intervals)
