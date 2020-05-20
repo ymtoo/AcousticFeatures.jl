@@ -3,7 +3,7 @@
 """
 Compute the squared L2 norm.
 """
-norm²(x) = sum(abs2.(x))
+norm²(x) = sum(abs2, x)
 
 function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
     if Nnorm >= length(x)
@@ -11,21 +11,14 @@ function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
         xfilt[xfilt.<0] .= 0
         return xfilt
     end
-    M = zeros(length(x))
-    for (i, xpart) in enumerate(Subsequence(x, Nnorm, Nnorm-1))
-        M[i] = median(xpart)
-    end
+    M = map(median, Subsequence(x, Nnorm, Nnorm-1))
     xfilt = x.-M
     xfilt[xfilt.<0] .= 0
     xfilt
 end
 
 function spectrumflatten(x::AbstractArray{T,2}, Nnorm::Int) where T <: Real
-    xfilt = zeros(Float64, size(x))
-    for (i, row) in enumerate(eachrow(x))
-        xfilt[i, :] = spectrumflatten(row, Nnorm)
-    end
-    xfilt
+    mapslices(row->spectrumflatten(row, Nnorm), x, dims=2)
 end
 
 """
@@ -60,9 +53,9 @@ end
 Convert the real signal `x` to an acoustic pressure signal in micropascal.
 """
 function pressure(x::AbstractVector{T}, sensitivity::T, gain::T; voltparams::Union{Nothing, Tuple{Int, T}}=nothing) where T<:Real
-    ν = 10^(sensitivity/20)
-    G = 10^(gain/20)
-    if voltparams != nothing
+    ν = exp10(sensitivity/20)
+    G = exp10(gain/20)
+    if voltparams !== nothing
         nbits, vref = voltparams
         x .*= vref/(2^(nbits-1))
     end
