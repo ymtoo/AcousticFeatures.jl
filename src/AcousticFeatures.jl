@@ -181,7 +181,7 @@ outputeltype(::SoundPressureLevel) = Float64
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In water, the common reference is 1 micropascal. In air, the common reference is 20 micropascal.
 """
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
-    rmsx = sqrt(mean(abs2, x)))
+    rmsx = sqrt(mean(abs2, x))
     [20*log10(rmsx/f.ref)]
 end
 
