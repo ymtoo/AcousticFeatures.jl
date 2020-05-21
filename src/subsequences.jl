@@ -1,7 +1,7 @@
 using PaddedViews
 
-struct Subsequence
-    c::AbstractVector
+struct Subsequence{VT <: AbstractVector}
+    c::VT
     winlen::Int
     noverlap::Int
     step::Int
