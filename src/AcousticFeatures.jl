@@ -118,7 +118,7 @@ function score(f::VMyriad{S,M}, x::AbstractVector{T}) where {T<:Real,S<:Real,M<:
     invRₘonetom = inv(cholesky(Rₘ[onetom, onetom]).L)
     s = mplusonedivtwo*log(K²+norm²(invRₘonetom*x[onetom]))
     for n in m+1:N
-        s += mplustwodivtwo*log(K²+norm²(invRₘ*x[n-m:n])) - mplusonedivtwo*log(K²+norm²(invRₘonetom*x[n-m:n-1]))
+        s += @views mplustwodivtwo*log(K²+norm²(invRₘ*x[n-m:n])) - mplusonedivtwo*log(K²+norm²(invRₘonetom*x[n-m:n-1]))
     end
     s
 end
@@ -140,7 +140,7 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     δf = frequency[2]-frequency[1]
     f.tnorm === nothing ? Nnorm = size(p, 2) : Nnorm = f.tnorm÷(δt) |> Int
     p    = spectrumflatten(p, Nnorm) #noise-flattened spectrogram
-    crds,_ = peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), eps(T)+percentile(p[:, 1], f.minhprc))
+    crds,_ = @views peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), eps(T)+percentile(p[:, 1], f.minhprc))
     ctrs = [[(crd[1], 1)] for crd in crds]
     for (i, col) in enumerate(eachcol(p[:, 2:end]))
         col = collect(col)
@@ -181,7 +181,7 @@ outputeltype(::SoundPressureLevel) = Float64
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In water, the common reference is 1 micropascal. In air, the common reference is 20 micropascal.
 """
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
-    rmsx = sqrt(mean(abs2.(x)))
+    rmsx = sqrt(mean(abs2, x))
     [20*log10(rmsx/f.ref)]
 end
 
