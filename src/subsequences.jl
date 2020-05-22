@@ -28,7 +28,7 @@ end
 
 function Base.iterate(subseq::Subsequence, state=1)
     state > length(subseq.c.data) && return nothing
-    return subseq.c[state-subseq.lpadlen:state+subseq.rpadlen], state+subseq.step
+    return @view(subseq.c[state-subseq.lpadlen:state+subseq.rpadlen]), state+subseq.step
     # if state <= subseq.lpadlen
     #     return vcat(zeros(eltype(subseq.c), subseq.lpadlen-(state-1)), subseq.c[1:state+subseq.rpadlen]), state+subseq.step
     # elseif state >= lenc-subseq.rpadlen
