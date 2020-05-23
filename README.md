@@ -14,7 +14,9 @@ The acoustic features are:
 - Alpha Stable Statistics (α and scale)
 
 ## Installation
+```julia
 using Pkg; pkg"add https://github.com/ymtoo/AcousticFeatures.jl.git"
+```
 
 ## Usage
 ```julia
