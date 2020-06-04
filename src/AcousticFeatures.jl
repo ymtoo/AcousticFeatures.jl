@@ -1,6 +1,6 @@
 module AcousticFeatures
 
-using AlphaStableDistributions, DSP, LinearAlgebra, Peaks, Statistics, StatsBase
+using AlphaStableDistributions, DSP, LinearAlgebra, Peaks, Statistics, StatsBase, ProgressMeter
 
 include("subsequences.jl")
 include("utils.jl")
@@ -216,7 +216,14 @@ function score(f::MaxDemonSpectrum, x::AbstractVector{T}) where T<:Real
     xd = demon(x, fs=f.fs)
 end
 
-function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=length(x), noverlap::Int=0, subseqtype::DataType=Float64, preprocess::Function=x->x, map::Function=map) where {T<:Real, N, L}
+function Score(f::AbstractAcousticFeature,
+               x::AbstractVector{T};
+               winlen::Int=length(x),
+               noverlap::Int=0,
+               subseqtype::DataType=Float64,
+               preprocess::Function=x->x,
+               map::Function=map,
+               showprogress::Bool=true) where {T<:Real, N, L}
     xlen = length(x)
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
@@ -232,7 +239,11 @@ function Score(f::AbstractAcousticFeature, x::AbstractVector{T}; winlen::Int=len
     else
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
-    s = map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
+    if showprogress
+        s = @showprogress map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
+    else
+        s = map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
+    end
     Score(reshape(vcat(s...), (length(s), length(s[1]))), 1:subseqs.step:xlen)
     # @inbounds for (i, subseq) in enumerate(subseqs)
     #     sc.s[i, :] = score(f, preprocess(convert.(subseqtype, subseq)))
