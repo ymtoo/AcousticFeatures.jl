@@ -1,6 +1,6 @@
 using AcousticFeatures
 
-using AlphaStableDistributions, Distributions, LazyWAVFiles, LinearAlgebra, SignalAnalysis, Test, WAV
+using AlphaStableDistributions, BenchmarkTools, Distributions, LazyWAVFiles, LinearAlgebra, SignalAnalysis, Test, WAV
 
 tmpdir = mktempdir()
 fs = 100_000
@@ -259,5 +259,33 @@ t = (0:N-1)./fs
         p2 = pressure(xbit, sensitivity, gain, voltparams=(nbits, vref))
         @test p1 == p2
     end
+
+    @testset "Benchmarks" begin
+        path = mktempdir()
+        y = sin.((0:99999999)/48000*2pi*440);
+        wavwrite(y, joinpath(path, "test1.wav"), Fs=48000)
+
+        dfile = DistributedWAVFile(path)
+        subseqsdf = Subsequence(dfile, 96000, 0)
+
+        t = @belapsed $subseqsdf[1]
+        @test t < 0.1
+        t = @belapsed $subseqsdf[10]
+        @test t < 0.1
+        t = @belapsed $subseqsdf[100]
+        @test t < 0.1
+
+        filepath = joinpath(path, "test1.wav")
+        lfile = LazyWAVFile(filepath)
+        subseqslf = Subsequence(lfile, 96000, 0)
+
+        t = @belapsed $subseqslf[1]
+        @test t < 0.01
+        t = @belapsed $subseqslf[10]
+        @test t < 0.01
+        t = @belapsed $subseqslf[100]
+        @test t < 0.01
+    end
+
 
 end
