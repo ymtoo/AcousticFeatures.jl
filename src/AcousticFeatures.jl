@@ -1,6 +1,6 @@
 module AcousticFeatures
 
-using AlphaStableDistributions, DSP, LinearAlgebra, Peaks, Statistics, StatsBase, ProgressMeter
+using AlphaStableDistributions, DSP, FindPeaks1D, LinearAlgebra, Statistics, StatsBase, ProgressMeter
 
 include("subsequences.jl")
 include("utils.jl")
@@ -137,28 +137,30 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     δf = frequency[2]-frequency[1]
     f.tnorm === nothing ? Nnorm = size(p, 2) : Nnorm = f.tnorm÷(δt) |> Int
     p    = spectrumflatten(p, Nnorm) #noise-flattened spectrogram
-    crds,_ = @views peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), eps(T)+percentile(p[:, 1], f.minhprc))
-    ctrs = [[(crd[1], 1)] for crd in crds]
+    # crds,_ = @views peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), eps(T)+percentile(p[:, 1], f.minhprc))
+    crds, _ = findpeaks1d(p[:, 1]; height=eps(T)+percentile(p[:, 1], f.minhprc), distance=trunc(Int, f.minfdist/δf))
+    ctrs = [[(crd, 1)] for crd in crds]
     for (i, col) in enumerate(eachcol(p[:, 2:end]))
         col = collect(col)
-        crds,_ = Peaks.peakprom(col, Maxima(), trunc(Int, f.minfdist/δf), eps(T)+percentile(col, f.minhprc))
+        # crds,_ = Peaks.peakprom(col, Maxima(), trunc(Int, f.minfdist/δf), eps(T)+percentile(col, f.minhprc))
+        crds, _ = findpeaks1d(col; height=eps(T)+percentile(col, f.minhprc), distance=trunc(Int, f.minfdist/δf))
         for crd in crds
             if length(ctrs) == 0
-                ctrs = [[(crd[1], 1)] for crd in crds]
+                ctrs = [[(crd, 1)] for crd in crds]
             else
                 idxselect = Int64[]
                 costselect = Float64[]
                 for (j, ctr) in enumerate(ctrs)
-                    if (ctr[end][2] == i-1) && abs(frequency[ctr[end][1]]-frequency[crd[1]]) <= f.fd
+                    if (ctr[end][2] == i-1) && abs(frequency[ctr[end][1]]-frequency[crd]) <= f.fd
                         push!(idxselect, j)
-                        push!(costselect, abs(frequency[ctr[end][1]]-frequency[crd[1]]))
+                        push!(costselect, abs(frequency[ctr[end][1]]-frequency[crd]))
                     end
                 end
                 if isempty(idxselect)
-                    push!(ctrs, [(crd[1], i)])
+                    push!(ctrs, [(crd, i)])
                 else
                     idxopt = idxselect[argmin(costselect)]
-                    push!(ctrs[idxopt], (crd[1], i))
+                    push!(ctrs[idxopt], (crd, i))
                 end
             end
         end
@@ -194,7 +196,8 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     center = Statistics.median(x)
     height = center+f.k*mad(x, center=center, normalize=false)
     distance = trunc(Int, f.tdist*f.fs)
-    crds, _ = Peaks.peakprom(x, Maxima(), distance, height)
+    # crds, _ = Peaks.peakprom(x, Maxima(), distance, height)
+    crds,_ = findpeaks1d(x; height=height, distance=distance)
     timeintervals = diff(crds)
     [length(crds) mean(timeintervals)/f.fs var(timeintervals)/f.fs]
 end

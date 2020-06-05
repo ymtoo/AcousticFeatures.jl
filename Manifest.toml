@@ -46,10 +46,10 @@ uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
 version = "0.5.10"
 
 [[BlockArrays]]
-deps = ["ArrayLayouts", "Compat", "LinearAlgebra"]
-git-tree-sha1 = "5e157c81f1321f2338e1e2b71389c7783d3f59e6"
+deps = ["ArrayLayouts", "LinearAlgebra"]
+git-tree-sha1 = "0fdda22cfaf7638d67f6fc7bc9d6aa0cad27678e"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.12.8"
+version = "0.12.6"
 
 [[Blosc]]
 deps = ["Blosc_jll"]
@@ -88,10 +88,10 @@ uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
 version = "0.6.0"
 
 [[Compat]]
-deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "48c20c43e157c6eab6cf88326504ec042b05e456"
+deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
+git-tree-sha1 = "195a3ffcb8b0762684b6821de18f83a16455c6ea"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.10.0"
+version = "2.0.0"
 
 [[CompilerSupportLibraries_jll]]
 deps = ["Libdl", "Pkg"]
@@ -168,6 +168,13 @@ deps = ["LinearAlgebra", "Random", "SparseArrays"]
 git-tree-sha1 = "44f561e293987ffc84272cd3d2b14b0b93123d63"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
 version = "0.8.10"
+
+[[FindPeaks1D]]
+git-tree-sha1 = "e24ad8da32841dd40e6976f1ecae0952c93e683a"
+repo-rev = "master"
+repo-url = "https://github.com/ymtoo/FindPeaks1D.jl.git"
+uuid = "d8961e24-b28b-4efb-8e50-1c680b9a7431"
+version = "0.1.0"
 
 [[HDF5]]
 deps = ["BinaryProvider", "Blosc", "CMakeWrapper", "Libdl", "Mmap"]
@@ -289,12 +296,6 @@ deps = ["OrderedCollections", "UnPack"]
 git-tree-sha1 = "38b2e970043613c187bd56a995fe2e551821eb4a"
 uuid = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 version = "0.12.1"
-
-[[Peaks]]
-deps = ["Compat", "UnsafeArrays"]
-git-tree-sha1 = "f0e08f0944cd1ed209155ac818c92bd6268dbe59"
-uuid = "18e31ff7-3703-566c-8e60-38913d67486b"
-version = "0.2.1"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
@@ -447,11 +448,6 @@ version = "1.0.1"
 
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
-
-[[UnsafeArrays]]
-git-tree-sha1 = "9740b414f85ec2fa9135066f81b1fb14212befd6"
-uuid = "c4a57d5a-5b31-53a6-b365-19f8c011fbd6"
-version = "1.0.1"
 
 [[WAV]]
 deps = ["Base64", "FileIO", "Libdl", "Logging"]
