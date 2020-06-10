@@ -188,6 +188,17 @@ t = (0:N-1)./fs
 
     end
 
+    @testset "Entropy" begin
+        @info "Entropy"
+
+        x = A.*sin.(2π*6250*t)
+        sc = Score(Entropy(256, 128, fs), x)
+        @test sc.s[1] ≈ 1.0 atol=1e-2
+        @test sc.s[2] ≈ 0.0 atol=1e-2
+        @test sc.s[3] ≈ 0.0 atol=1e-2
+
+    end
+
     @testset "Subsequences" begin
         x = [1, 2, 3, 4, 5, 6, 7]
         tmpdir = mktempdir()

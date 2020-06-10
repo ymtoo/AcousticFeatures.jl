@@ -5,7 +5,7 @@ using AlphaStableDistributions, DSP, FindPeaks1D, LinearAlgebra, Statistics, Sta
 include("subsequences.jl")
 include("utils.jl")
 
-export Energy, Myriad, VMyriad, FrequencyContours, SoundPressureLevel, ImpulseStats, AlphaStableStats, Score
+export Energy, Myriad, VMyriad, FrequencyContours, SoundPressureLevel, ImpulseStats, AlphaStableStats, Entropy, Score
 
 export Subsequence
 
@@ -57,7 +57,9 @@ ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true)
 
 struct AlphaStableStats <: AbstractAcousticFeature end
 
-struct MaxDemonSpectrum{FT<:Real} <: AbstractAcousticFeature
+struct Entropy{FT<:Real} <: AbstractAcousticFeature
+    n::Int
+    noverlap::Int
     fs::FT
 end
 
@@ -212,12 +214,27 @@ function score(f::AlphaStableStats, x::AbstractVector{T}) where T<:Real
     [d.α d.scale]
 end
 
-outputndims(::MaxDemonSpectrum) = 1
+outputndims(::Entropy) = 3
+outputeltype(::Entropy) = Float64
 """
+Score of `x` based on temporal entropy, spectral entropy and entropy index.
+
+Reference:
+J. Sueur, A. Farina, A. Gasc, N. Pieretti, S. Pavoine, Acoustic Indices for Biodiversity Assessment and Landscape Investigation, 2014.
 """
-function score(f::MaxDemonSpectrum, x::AbstractVector{T}) where T<:Real
-    xd = demon(x, fs=f.fs)
+function score(f::Entropy, x::AbstractVector{T}) where T<:Real
+    sp = spectrogram(x, f.n, f.noverlap; fs=f.fs).power
+
+    ne = normalize_envelope(x)
+    n = length(ne)
+    Ht = -sum(ne .* log2.(ne)) ./ log2(n)
+    ns = normalize_spectrum(sp)
+    N = length(ns)
+    Hf = -sum(ns .* log2.(ns)) ./ log2.(N)
+    H = Ht*Hf
+    [Ht Hf H]
 end
+
 
 function Score(f::AbstractAcousticFeature,
                x::AbstractVector{T};
