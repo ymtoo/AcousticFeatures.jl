@@ -20,28 +20,51 @@ using Pkg; pkg"add https://github.com/ymtoo/AcousticFeatures.jl.git"
 
 ## Usage
 ```julia
-julia> using AcousticFeatures, Plots
-
-julia> N=100_000; fs=100_000
-
-julia> v = randn(Float64, 3*N)
-
-julia> s = chirp(10_000, 30_000, 1.0, fs)
-
-julia> x=copy(v); x[N:2*N-1]+=s
-
-julia> plot((1:3*N)/fs, x, xlabel="Time (sec)", ylabel="Pressure (uncalibrated)", legend=false, thickness_scaling=1.5, dpi=150)
+using AcousticFeatures, Plots
+N  = 100_000
+fs = 100_000
+v  = randn(Float64, 3*N)
+s  = chirp(10_000, 30_000, 1.0, fs)
+x  = copy(v); x[N:2*N-1] += s
+plot((1:3*N) / fs, x,
+    xlabel = "Time (sec)",
+    ylabel = "Pressure (uncalibrated)",
+    legend = false,
+    dpi    = 150,
+    thickness_scaling = 1.5,
+)
 ```
 ![window](timeseries.png)
 ```julia
-julia>n=512; tnorm=1.0; fd=1000.0; minhprc = 99.0; minfdist=1000.0; mintlen=0.05; winlen=10_000; noverlap=5_000
-
-julia> sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), v, winlen=winlen, noverlap=noverlap)
-
-julia> sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x, winlen=winlen, noverlap=noverlap)
-
-julia> plot(sc1.indices/fs, sc1.s, xlabel="Time (sec)", ylabel="Frequency Contours", label="without chirp", color=:blue, thickness_scaling=1.5, dpi=150)
-
-julia> plot!(sc2.indices/fs, sc2.s, xlabel="Time (sec)", ylabel="Frequency Contours", label="with chirp", color=:red, thickness_scaling=1.5, dpi=150)
+n = 512; tnorm = 1.0; fd=1000.0; minhprc = 99.0; minfdist = 1000.0
+mintlen = 0.05; winlen = 10_000; noverlap = 5_000
+sc1 = Score(
+    FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen),
+    v,
+    winlen = winlen,
+    noverlap = noverlap,
+)
+sc2 = Score(
+    FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen),
+    x,
+    winlen = winlen,
+    noverlap = noverlap,
+)
+plot( sc1.indices / fs, sc1.s,
+    xlabel = "Time (sec)",
+    ylabel = "Frequency Contours",
+    label  = "without chirp",
+    color  = :blue,
+    dpi    = 150,
+    thickness_scaling = 1.5,
+)
+plot!( sc2.indices / fs, sc2.s,
+    xlabel = "Time (sec)",
+    ylabel = "Frequency Contours",
+    label  = "with chirp",
+    color  = :red,
+    dpi    = 150,
+    thickness_scaling = 1.5,
+)
 ```
 ![window](frequencycontours.png)
