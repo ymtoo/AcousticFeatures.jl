@@ -192,7 +192,7 @@ t = (0:N-1)./fs
         @info "Entropy"
 
         x = A.*sin.(2π*6250*t)
-        sc = Score(Entropy(256, 128, fs), x)
+        sc = Score(Entropy(256, 128, fs, false), x)
         @test sc.s[1] ≈ 1.0 atol=1e-2
         @test sc.s[2] ≈ 0.0 atol=1e-2
         @test sc.s[3] ≈ 0.0 atol=1e-2
@@ -200,6 +200,8 @@ t = (0:N-1)./fs
     end
 
     @testset "Subsequences" begin
+        @info "Subsequences"
+
         x = [1, 2, 3, 4, 5, 6, 7]
         tmpdir = mktempdir()
         a, b = [1, 2, 3, 4], [5, 6, 7]
@@ -250,6 +252,8 @@ t = (0:N-1)./fs
     end
 
     @testset "Utils" begin
+        @info "Utils"
+
         x = [1, 2, 3, 4, 5, 6, 7]
         Nnorm = 3
         xfilt = x - [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0]
@@ -272,6 +276,8 @@ t = (0:N-1)./fs
     end
 
     @testset "Benchmarks" begin
+        @info "Benchmarks"
+
         path = mktempdir()
         y = sin.((0:99999999)/48000*2pi*440);
         wavwrite(y, joinpath(path, "test1.wav"), Fs=48000)
