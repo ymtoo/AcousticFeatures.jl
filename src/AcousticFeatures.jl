@@ -197,8 +197,9 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     if f.computeenvelope
         x = envelope(x)
     end
-    center = Statistics.median(x)
-    height = center+f.k*mad(x, center=center, normalize=false)
+#    center = Statistics.median(x)
+#    height = center+f.k*mad(x, center=center, normalize=false)
+    height = quantile(x, (0.01,))[1]
     distance = trunc(Int, f.tdist*f.fs)
     # crds, _ = Peaks.peakprom(x, Maxima(), distance, height)
     crds,_ = findpeaks1d(x; height=height, distance=distance)
