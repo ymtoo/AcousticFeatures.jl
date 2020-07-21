@@ -12,6 +12,8 @@ The acoustic features are:
 - Sound Pressure Level
 - Impulse Statistics (number of impulses, mean and variance of inter-impulse intervals)
 - Alpha Stable Statistics (α and scale)
+- Entropy (temporal entropy, spectral entropy and entropy index)
+- Zero Crossing Rate
 
 ## Installation
 ```julia
