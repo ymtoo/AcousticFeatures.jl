@@ -189,7 +189,7 @@ t = (0:N-1)./fs
     end
 
     @testset "Entropy" begin
-        @info "Entropy"
+        @info "Testing Entropy"
 
         x = A.*sin.(2π*6250*t)
         sc = Score(Entropy(256, 128, fs, false), x)
@@ -199,8 +199,15 @@ t = (0:N-1)./fs
 
     end
 
+    @testset "ZeroCrossingRate" begin
+        @info "Testing ZeroCrossingRate"
+        x = [100.0, 1.0, -2.0, 2.0, -100, 0.0, 10.0]
+        sc = Score(ZeroCrossingRate(), x)
+        @test sc.s[1] == 4 / length(x)
+    end
+
     @testset "Subsequences" begin
-        @info "Subsequences"
+        @info "Testing Subsequences"
 
         x = [1, 2, 3, 4, 5, 6, 7]
         tmpdir = mktempdir()
@@ -252,7 +259,7 @@ t = (0:N-1)./fs
     end
 
     @testset "Utils" begin
-        @info "Utils"
+        @info "Testing Utils"
 
         x = [1, 2, 3, 4, 5, 6, 7]
         Nnorm = 3

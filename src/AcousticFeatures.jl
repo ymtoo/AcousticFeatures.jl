@@ -5,7 +5,7 @@ using AlphaStableDistributions, DSP, FindPeaks1D, LinearAlgebra, Statistics, Sta
 include("subsequences.jl")
 include("utils.jl")
 
-export Energy, Myriad, VMyriad, FrequencyContours, SoundPressureLevel, ImpulseStats, AlphaStableStats, Entropy, Score
+export Energy, Myriad, VMyriad, FrequencyContours, SoundPressureLevel, ImpulseStats, AlphaStableStats, Entropy, ZeroCrossingRate, Score
 
 export Subsequence
 
@@ -64,6 +64,8 @@ struct Entropy{FT<:Real} <: AbstractAcousticFeature
     isspectrumflatten::Bool
 end
 Entropy(n, noverlap, fs) = Entropy(n, noverlap, fs, true)
+
+struct ZeroCrossingRate <: AbstractAcousticFeature end
 
 mutable struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
@@ -237,6 +239,16 @@ function score(f::Entropy, x::AbstractVector{T}) where T<:Real
     [Ht Hf H]
 end
 
+outputndims(::ZeroCrossingRate) = 1
+outputeltype(::ZeroCrossingRate) = Float64
+"""
+Zero crossing rate.
+
+https://en.wikipedia.org/wiki/Zero-crossing_rate
+"""
+function score(f::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
+    count(!iszero, diff(x .> 0))/length(x)
+end
 
 function Score(f::AbstractAcousticFeature,
                x::AbstractVector{T};
