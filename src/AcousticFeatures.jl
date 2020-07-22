@@ -1,15 +1,41 @@
 module AcousticFeatures
 
-using AlphaStableDistributions, DSP, FindPeaks1D, LinearAlgebra, Statistics, StatsBase, ProgressMeter
+using AlphaStableDistributions
+using DSP
+using FFTW
+using FindPeaks1D
+using LinearAlgebra
+using Statistics
+using StatsBase
+using ProgressMeter
+
+export
+
+    # AcousticFeatures
+    Energy,
+    Myriad,
+    VMyriad,
+    FrequencyContours,
+    SoundPressureLevel,
+    ImpulseStats,
+    AlphaStableStats,
+    Entropy,
+    ZeroCrossingRate,
+    SpectralCentroid,
+    Score,
+
+    # subsequences
+    Subsequence,
+
+    # utils
+    spectrumflatten,
+    myriadconstant,
+    vmyriadconstant,
+    pressure,
+    nvelope
 
 include("subsequences.jl")
 include("utils.jl")
-
-export Energy, Myriad, VMyriad, FrequencyContours, SoundPressureLevel, ImpulseStats, AlphaStableStats, Entropy, ZeroCrossingRate, Score
-
-export Subsequence
-
-export spectrumflatten, myriadconstant, vmyriadconstant, pressure, envelope
 
 abstract type AbstractAcousticFeature end
 
@@ -66,6 +92,10 @@ end
 Entropy(n, noverlap, fs) = Entropy(n, noverlap, fs, true)
 
 struct ZeroCrossingRate <: AbstractAcousticFeature end
+
+struct SpectralCentroid{FT<:Real} <: AbstractAcousticFeature
+    fs::FT
+end
 
 mutable struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
@@ -248,6 +278,17 @@ https://en.wikipedia.org/wiki/Zero-crossing_rate
 """
 function score(f::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
     count(!iszero, diff(x .> 0))/length(x)
+end
+
+"""
+Spectral centroid.
+
+https://en.wikipedia.org/wiki/Spectral_centroid
+"""
+function score(f::SpectralCentroid, x::AbstractVector{T}) where T<:Real
+    magnitudes = abs.(rfft(x))
+    freqs = FFTW.rfftfreq(length(x), f.fs)
+    sum(magnitudes .* freqs) / sum(magnitudes)
 end
 
 function Score(f::AbstractAcousticFeature,

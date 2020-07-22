@@ -206,6 +206,14 @@ t = (0:N-1)./fs
         @test sc.s[1] == 4 / length(x)
     end
 
+    @testset "SpectralCentroid" begin
+        @info "Testing SpectralCentroid"
+
+        x = A.*sin.(2π*6250*t)
+        sc = Score(SpectralCentroid(fs), x)
+        @test sc.s[1] ≈ 6250 atol=0.0001
+    end
+
     @testset "Subsequences" begin
         @info "Testing Subsequences"
 
