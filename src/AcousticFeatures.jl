@@ -253,7 +253,7 @@ function score(f::Entropy, x::AbstractVector{T}) where T<:Real
 end
 
 """
-Zero crossing rate.
+Score of `x` based on zero crossing rate.
 
 https://en.wikipedia.org/wiki/Zero-crossing_rate
 """
@@ -262,7 +262,7 @@ function score(f::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
 end
 
 """
-Spectral centroid.
+Score of `x` based on spectral centroid.
 
 https://en.wikipedia.org/wiki/Spectral_centroid
 """
