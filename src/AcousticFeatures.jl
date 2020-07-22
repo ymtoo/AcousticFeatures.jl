@@ -106,16 +106,11 @@ end
 #   Implementations
 #
 ################################################################################
-
-outputndims(::Energy) = 1
-outputeltype(::Energy) = Float64
 """
     Score of `x` based on mean energy.
 """
 score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 
-outputndims(::Myriad{S}) where S<:Real = 1
-outputeltype(::Myriad{S}) where S<:Real = Float64
 """
     Score of `x` based on myriad.
 
@@ -130,8 +125,6 @@ end
 
 score(f::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
-outputndims(::VMyriad{S,M}) where {S<:Real,M<:AbstractMatrix} = 1
-outputeltype(::VMyriad{S,M}) where {S<:Real,M<:AbstractMatrix} = Float64
 """
     Score of `x` based on vector myriad.
 
@@ -157,8 +150,6 @@ function score(f::VMyriad{S,M}, x::AbstractVector{T}) where {T<:Real,S<:Real,M<:
 end
 score(f::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
 
-outputndims(::FrequencyContours) = 1
-outputeltype(::FrequencyContours) = Float64
 """
     Score of `x` based on frequency contours count.
 
@@ -210,8 +201,6 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     [count/length(p)]
 end
 
-outputndims(::SoundPressureLevel) = 1
-outputeltype(::SoundPressureLevel) = Float64
 """
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In water, the common reference is 1 micropascal. In air, the common reference is 20 micropascal.
 """
@@ -220,8 +209,6 @@ function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     [20*log10(rmsx/f.ref)]
 end
 
-outputndims(::ImpulseStats) = 3
-outputeltype(::ImpulseStats) = Float64
 """
 Score of `x` based on number of impulses, mean and variance of inter-impulse intervals. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
 """
@@ -238,8 +225,6 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     [length(crds) mean(timeintervals)/f.fs var(timeintervals)/f.fs]
 end
 
-outputndims(::AlphaStableStats) = 2
-outputeltype(::AlphaStableStats) = Float64
 """
 Score of `x` based on the parameters of Symmetric Alpha Stable Distributions. The parameter α measures the impulsiveness while the parameter scale measures the width of the distributions.
 """
@@ -248,8 +233,6 @@ function score(f::AlphaStableStats, x::AbstractVector{T}) where T<:Real
     [d.α d.scale]
 end
 
-outputndims(::Entropy) = 3
-outputeltype(::Entropy) = Float64
 """
 Score of `x` based on temporal entropy, spectral entropy and entropy index.
 
@@ -269,8 +252,6 @@ function score(f::Entropy, x::AbstractVector{T}) where T<:Real
     [Ht Hf H]
 end
 
-outputndims(::ZeroCrossingRate) = 1
-outputeltype(::ZeroCrossingRate) = Float64
 """
 Zero crossing rate.
 
