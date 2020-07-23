@@ -214,6 +214,18 @@ t = (0:N-1)./fs
         @test sc.s[1] ≈ 6250 atol=0.0001
     end
 
+    @testset "SpectralFlatness" begin
+        @info "Testing SpectralFlatness"
+
+        x = A.*sin.(2π*6250*t)
+        sc = Score(SpectralFlatness(), x)
+        @test sc.s[1] ≈ 0.0 atol=0.0001
+
+        x = randn(N)
+        scnormal = Score(SpectralFlatness(), x)
+        @test scnormal.s[1] > sc.s[1]
+    end
+
     @testset "Subsequences" begin
         @info "Testing Subsequences"
 

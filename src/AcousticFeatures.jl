@@ -22,6 +22,7 @@ export
     Entropy,
     ZeroCrossingRate,
     SpectralCentroid,
+    SpectralFlatness,
     Score,
 
     # subsequences
@@ -95,6 +96,9 @@ struct ZeroCrossingRate <: AbstractAcousticFeature end
 
 struct SpectralCentroid{FT<:Real} <: AbstractAcousticFeature
     fs::FT
+end
+
+struct SpectralFlatness <: AbstractAcousticFeature
 end
 
 mutable struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
@@ -270,6 +274,16 @@ function score(f::SpectralCentroid, x::AbstractVector{T}) where T<:Real
     magnitudes = abs.(rfft(x))
     freqs = FFTW.rfftfreq(length(x), f.fs)
     sum(magnitudes .* freqs) / sum(magnitudes)
+end
+
+"""
+Score of `x` based on spectral flatness.
+
+https://en.wikipedia.org/wiki/Spectral_flatness
+"""
+function score(f::SpectralFlatness, x::AbstractVector{T}) where T<:Real
+    magnitudes² = (abs.(rfft(x))).^2
+    geomean(magnitudes²) / mean(magnitudes²)
 end
 
 function Score(f::AbstractAcousticFeature,
