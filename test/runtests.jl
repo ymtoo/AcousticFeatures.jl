@@ -287,9 +287,16 @@ t = (0:N-1)./fs
         @test spectrumflatten(x, Nnorm) == xfilt
 
         x = [[1 2 3 4 5 6 7];
-        [8 9 10 11 12 13 14]]
-        xfilt = x - [[1.0 2.0 3.0 4.0 5.0 6.0 6.0]; [8.0 9.0 10.0 11.0 12.0 13.0 13.0]]
-        @test spectrumflatten(x, Nnorm) == xfilt
+             [8 9 10 11 12 13 14];
+             [15 16 17 18 19 20 21]]
+        xfiltrow = x - [[1.0 2.0 3.0 4.0 5.0 6.0 6.0]; 
+                        [8.0 9.0 10.0 11.0 12.0 13.0 13.0];
+                        [15.0 16.0 17.0 18.0 19.0 20.0 20.0]]
+        xfiltcol = x - [[1.0 2.0 3.0 4.0 5.0 6.0 7.0];
+                        [8.0 9.0 10.0 11.0 12.0 13.0 14.0];
+                        [8.0 9.0 10.0 11.0 12.0 13.0 14.0]]                
+        @test spectrumflatten(x, Nnorm) == xfiltrow
+        @test spectrumflatten(x, Nnorm; dims=1) == xfiltcol
 
         nbits = 16
         vref = 1.0

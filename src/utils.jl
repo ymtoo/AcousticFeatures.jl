@@ -17,8 +17,8 @@ function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
     xfilt
 end
 
-function spectrumflatten(x::AbstractArray{T,2}, Nnorm::Int) where T <: Real
-    mapslices(row->spectrumflatten(row, Nnorm), x, dims=2)
+function spectrumflatten(x::AbstractArray{T,2}, Nnorm::Int; dims::Int=2) where T <: Real
+    mapslices(v->spectrumflatten(v, Nnorm), x, dims=dims)
 end
 
 """
