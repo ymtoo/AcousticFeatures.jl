@@ -293,7 +293,7 @@ function score(f::SpectralFlatness, x::AbstractVector{T}) where T<:Real
 end
 
 """
-Score of `x` based on sum absolute of autocorrelation. 
+Score of `x` based on sum of absolute autocorrelation. 
 """
 function score(f::SumAbsAutocor, x::AbstractVector{T}) where T<:Real
 #    ac = autocor(x, 0:length(x)-1; demean=f.demean)

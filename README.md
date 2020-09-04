@@ -13,7 +13,10 @@ The acoustic features are:
 - Impulse Statistics (number of impulses, mean and variance of inter-impulse intervals)
 - Alpha Stable Statistics (α and scale)
 - Entropy (temporal entropy, spectral entropy and entropy index)
-- Zero Crossing Rate
+- [Zero Crossing Rate](https://en.wikipedia.org/wiki/Zero-crossing_rate)
+- [Spectral Centroid](https://en.wikipedia.org/wiki/Spectral_centroid)
+- [SpectralFlatness](https://en.wikipedia.org/wiki/Spectral_flatness)
+- Sum of Absolute Autocorrelation,
 
 ## Installation
 ```julia
