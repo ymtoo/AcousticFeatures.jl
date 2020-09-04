@@ -23,6 +23,7 @@ export
     ZeroCrossingRate,
     SpectralCentroid,
     SpectralFlatness,
+    SumAbsAutocor,
     Score,
 
     # subsequences
@@ -100,6 +101,11 @@ end
 
 struct SpectralFlatness <: AbstractAcousticFeature
 end
+
+struct SumAbsAutocor <: AbstractAcousticFeature
+    demean::Bool
+end
+SumAbsAutocor() = SumAbsAutocor(true)
 
 mutable struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
@@ -284,6 +290,19 @@ https://en.wikipedia.org/wiki/Spectral_flatness
 function score(f::SpectralFlatness, x::AbstractVector{T}) where T<:Real
     magnitudes² = (abs.(rfft(x))).^2
     geomean(magnitudes²) / mean(magnitudes²)
+end
+
+"""
+Score of `x` based on sum absolute of autocorrelation. 
+"""
+function score(f::SumAbsAutocor, x::AbstractVector{T}) where T<:Real
+#    ac = autocor(x, 0:length(x)-1; demean=f.demean)
+    if f.demean
+        x .-= mean(x)
+    end
+    actmp = xcorr(x, x)
+    ac = actmp[length(x):end] / actmp[length(x)]
+    sum(abs, ac)
 end
 
 function Score(f::AbstractAcousticFeature,
