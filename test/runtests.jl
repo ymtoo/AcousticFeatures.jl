@@ -235,6 +235,20 @@ t = (0:N-1)./fs
         @test sc.s[1] / length(x) ≈ sum(abs, y) / 2 / length(x) atol=0.0001
     end
 
+    @testset "PermutationEntropy" begin
+        @info "Testing PermutationEntropy"
+
+        x = [4,7,9,10,6,11,3]
+        m = 3
+        τ = 1
+        norm1 = false
+        norm2 = true
+        sc1 = Score(PermutationEntropy(m, τ, norm1), x)
+        sc2 = Score(PermutationEntropy(m, τ, norm2), x)
+        @test sc1.s[1] ≈ 1.5219 atol=0.0001
+        @test sc2.s[1] ≈ 0.5887 atol=0.0001
+    end
+
     @testset "Subsequences" begin
         @info "Testing Subsequences"
 

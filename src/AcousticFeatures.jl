@@ -24,6 +24,7 @@ export
     SpectralCentroid,
     SpectralFlatness,
     SumAbsAutocor,
+    PermutationEntropy,
     Score,
 
     # subsequences
@@ -106,6 +107,13 @@ struct SumAbsAutocor <: AbstractAcousticFeature
     demean::Bool
 end
 SumAbsAutocor() = SumAbsAutocor(true)
+
+struct PermutationEntropy <: AbstractAcousticFeature
+    m::Integer
+    τ::Integer
+    normalization::Bool
+end
+PermutationEntropy(m) = PermutationEntropy(m, 1, true)
 
 mutable struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
@@ -303,6 +311,22 @@ function score(f::SumAbsAutocor, x::AbstractVector{T}) where T<:Real
     actmp = xcorr(x, x)
     ac = actmp[length(x):end] / actmp[length(x)]
     sum(abs, ac)
+end
+
+"""
+Score of `x` based on permutation entropy.
+
+C. Bandt, B. Pompe, "Permutation entropy: a natural complexity measure for time series",
+Phys. Rev. Lett., 88 (17), 2002
+"""
+function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
+    p = ordinalpatterns(x, f.m, f.τ)
+    pe = -sum(p .* log2.(p))
+    if f.normalization
+        pe / convert(eltype(pe), log2(factorial(big(f.m))))
+    else
+        pe
+    end
 end
 
 function Score(f::AbstractAcousticFeature,
