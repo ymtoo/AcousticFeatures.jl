@@ -15,8 +15,8 @@ The acoustic features are:
 - Entropy (temporal entropy, spectral entropy and entropy index)
 - [Zero Crossing Rate](https://en.wikipedia.org/wiki/Zero-crossing_rate)
 - [Spectral Centroid](https://en.wikipedia.org/wiki/Spectral_centroid)
-- [SpectralFlatness](https://en.wikipedia.org/wiki/Spectral_flatness)
-- Sum of Absolute Autocorrelation,
+- [Spectral Flatness](https://en.wikipedia.org/wiki/Spectral_flatness)
+- Sum of Absolute Autocorrelation
 - [Permutation Entropy](http://materias.df.uba.ar/mta2019v/files/2019/06/permutation_entropy1.pdf)
 
 ## Installation
