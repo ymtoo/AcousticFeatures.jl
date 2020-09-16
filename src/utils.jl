@@ -50,7 +50,7 @@ function vmyriadconstant(x::AbstractVector{T}, m::Integer=4) where T<:Real
 end
 
 """
-Convert the real signal `x` to an acoustic pressure signal in micropascal.
+Convert a real signal `x` to an acoustic pressure signal in micropascal.
 """
 function pressure(x::AbstractVector{T}, sensitivity::T, gain::T; voltparams::Union{Nothing, Tuple{Int, T}}=nothing) where T<:Real
     ν = exp10(sensitivity/20)
@@ -63,14 +63,14 @@ function pressure(x::AbstractVector{T}, sensitivity::T, gain::T; voltparams::Uni
 end
 
 """
-Generate a Hilbert envelope of the real signal `x`.
+Generate a Hilbert envelope of a real signal `x`.
 """
 function envelope(x::AbstractVector{T}) where T<:Real
     abs.(hilbert(x))
 end
 
 """
-Get the normalized envelope of of the real signal `x`.
+Get the normalized envelope of of a real signal `x`.
 """
 function normalize_envelope(x::AbstractVector{T}) where T<:Real
     env = envelope(x)
@@ -78,9 +78,31 @@ function normalize_envelope(x::AbstractVector{T}) where T<:Real
 end
 
 """
-Get the normalized spectrum of the real signal `x`.
+Get the normalized spectrum of a real signal `x`.
 """
 function normalize_spectrum(s::AbstractMatrix{T}) where T<:Real
     sf = sum(s, dims=2)
     sf/sum(sf)
+end
+
+"""
+Compute ordinal patterns of a real signal `x`.
+"""
+function ordinalpatterns(x::AbstractVector{T}, m::Integer, τ::Integer=1) where T<:Real
+    maxnumperms = factorial(big(m))
+    n = length(x) - τ*m + 1
+    ps = []
+    counts = []
+    for (i, t) in enumerate(1:n)
+        s = @view x[t:τ:t+τ*(m-1)]
+        p = sortperm(sortperm(s))
+        v = [p == ptmp for ptmp in ps]
+        if any(v)
+            counts[v] .+= 1
+        else
+            push!(ps, p)
+            push!(counts, 1)
+        end
+    end
+    counts / sum(counts) 
 end
