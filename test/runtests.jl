@@ -64,31 +64,31 @@ t = (0:N-1)./fs
         end
     end
 
-    @testset "VMyriad" begin
-        @info "Testing VMyriad"
+    # @testset "VMyriad" begin
+    #     @info "Testing VMyriad"
 
-        # α = 1.3
-        # identitymatrix = zeros(5, 5)
-        # identitymatrix[diagind(identitymatrix)] .= 1.0
-        # d = AlphaSubGaussian(α=α, n=N)
-        # x = rand(d)
-        # d̂ = fit(AlphaSubGaussian, x, 4)
+    #     # α = 1.3
+    #     # identitymatrix = zeros(5, 5)
+    #     # identitymatrix[diagind(identitymatrix)] .= 1.0
+    #     # d = AlphaSubGaussian(α=α, n=N)
+    #     # x = rand(d)
+    #     # d̂ = fit(AlphaSubGaussian, x, 4)
 
-        α = 1.3
-        d = AlphaSubGaussian(;α=α, n=N)
-        x = rand(d)
-        d̂ = fit(AlphaSubGaussian, x, 4)
+    #     α = 1.3
+    #     d = AlphaSubGaussian(;α=α, n=N)
+    #     x = rand(d)
+    #     d̂ = fit(AlphaSubGaussian, x, 4)
 
-        f0 = VMyriad(vmyriadconstant(d̂.α, d̂.R)...)
-        f1 = VMyriad(vmyriadconstant(1.8, d̂.R)...)
-        identitymatrix = zeros(5, 5)
-        identitymatrix[diagind(identitymatrix)] .= 1.0
-        f2 = VMyriad(vmyriadconstant(1.8, identitymatrix)...)
+    #     f0 = VMyriad(vmyriadconstant(d̂.α, d̂.R)...)
+    #     f1 = VMyriad(vmyriadconstant(1.8, d̂.R)...)
+    #     identitymatrix = zeros(5, 5)
+    #     identitymatrix[diagind(identitymatrix)] .= 1.0
+    #     f2 = VMyriad(vmyriadconstant(1.8, identitymatrix)...)
 
-        @test Score(f0, x).s[1] ≈ Score(VMyriad(vmyriadconstant(d̂.α, d̂.R)...), x).s[1]
-        @test Score(f0, x).s[1] < Score(f1, x).s[1]
-        @test Score(f0, x).s[1] < Score(f2, x).s[1]
-    end
+    #     @test Score(f0, x).s[1] ≈ Score(VMyriad(vmyriadconstant(d̂.α, d̂.R)...), x).s[1]
+    #     @test Score(f0, x).s[1] < Score(f1, x).s[1]
+    #     @test Score(f0, x).s[1] < Score(f2, x).s[1]
+    # end
 
     @testset "FrequencyContours" begin
         @info "Testing FrequencyContours"
@@ -96,8 +96,8 @@ t = (0:N-1)./fs
         duration = N/fs
         f11 = 10_000; f21 = 50_000
         f12 = 1_000; f22 = 20_000
-        x1 = real(chirp(f11, f21, duration, fs).data)+real(chirp(f12, f22, duration, fs).data)
-        x2 = real(chirp(f11, f21, duration, fs).data)
+        x1 = real(samples(chirp(f11, f21, duration, fs)))+real(samples(chirp(f12, f22, duration, fs)))
+        x2 = real(samples(chirp(f11, f21, duration, fs)))
         n = 512
         tnorm = 1.0
         fd = 1000.0
@@ -323,7 +323,7 @@ t = (0:N-1)./fs
 
         nbits = 16
         vref = 1.0
-        xvolt = vref.*real(cw(64, 1, 512).data)
+        xvolt = vref.*real(samples(cw(64, 1, 512)))
         xbit = xvolt*(2^(nbits-1))
         sensitivity = 0.0
         gain = 0.0
