@@ -15,7 +15,7 @@ export
     # AcousticFeatures
     Energy,
     Myriad,
-    VMyriad,
+    # VMyriad,
     FrequencyContours,
     SoundPressureLevel,
     ImpulseStats,
@@ -55,11 +55,11 @@ struct Myriad{T<:Union{Nothing,Real}} <: AbstractAcousticFeature
 end
 Myriad() = Myriad{Nothing}(nothing)
 
-struct VMyriad{T<:Union{Nothing,Real},M<:Union{Nothing,AbstractMatrix}} <: AbstractAcousticFeature
-    K²::T
-    Rₘ::M
-end
-VMyriad() = VMyriad(nothing, nothing)
+# struct VMyriad{T<:Union{Nothing,Real},M<:Union{Nothing,AbstractMatrix}} <: AbstractAcousticFeature
+#     K²::T
+#     Rₘ::M
+# end
+# VMyriad() = VMyriad(nothing, nothing)
 
 struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     fs::FT
@@ -144,30 +144,30 @@ end
 
 score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
-"""
-    Score of `x` based on vector myriad.
+# """
+#     Score of `x` based on vector myriad.
 
-    Reference:
-    Mahmood et. al., "Optimal and Near-Optimal Detection in Bursty Impulsive Noise,"
-    IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
-"""
-function score(f::VMyriad{S,M}, x::AbstractVector{T}) where {T<:Real,S<:Real,M<:AbstractMatrix}
-    K², Rₘ = f.K², f.Rₘ
-    m = size(Rₘ, 1)-1
-    N = length(x)
-    N < m && throw(ArgumentError("`m` has to be larger than length of `x`"))
-    mplusonedivtwo = (m+1)/2
-    mplustwodivtwo = (m+2)/2
-    onetom = 1:m
-    invRₘ = inv(cholesky(Rₘ).L)
-    invRₘonetom = inv(cholesky(Rₘ[onetom, onetom]).L)
-    s = mplusonedivtwo*log(K²+norm²(invRₘonetom*x[onetom]))
-    for n in m+1:N
-        s += @views mplustwodivtwo*log(K²+norm²(invRₘ*x[n-m:n])) - mplusonedivtwo*log(K²+norm²(invRₘonetom*x[n-m:n-1]))
-    end
-    s
-end
-score(::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
+#     Reference:
+#     Mahmood et. al., "Optimal and Near-Optimal Detection in Bursty Impulsive Noise,"
+#     IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
+# """
+# function score(f::VMyriad{S,M}, x::AbstractVector{T}) where {T<:Real,S<:Real,M<:AbstractMatrix}
+#     K², Rₘ = f.K², f.Rₘ
+#     m = size(Rₘ, 1)-1
+#     N = length(x)
+#     N < m && throw(ArgumentError("`m` has to be larger than length of `x`"))
+#     mplusonedivtwo = (m+1)/2
+#     mplustwodivtwo = (m+2)/2
+#     onetom = 1:m
+#     invRₘ = inv(cholesky(Rₘ).L)
+#     invRₘonetom = inv(cholesky(Rₘ[onetom, onetom]).L)
+#     s = mplusonedivtwo*log(K²+norm²(invRₘonetom*x[onetom]))
+#     for n in m+1:N
+#         s += @views mplustwodivtwo*log(K²+norm²(invRₘ*x[n-m:n])) - mplusonedivtwo*log(K²+norm²(invRₘonetom*x[n-m:n-1]))
+#     end
+#     s
+# end
+# score(::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
 
 """
     Score of `x` based on frequency contours count.
