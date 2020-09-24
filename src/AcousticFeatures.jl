@@ -3,7 +3,8 @@ module AcousticFeatures
 using AlphaStableDistributions
 using DSP
 using FFTW
-using FindPeaks1D
+using PaddedViews
+using Peaks
 using LinearAlgebra
 using Statistics
 using StatsBase
@@ -141,7 +142,7 @@ function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real, S<:Real}
     [sum(x -> log(sqKscale + abs2(x)), x)]
 end
 
-score(f::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
+score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
 """
     Score of `x` based on vector myriad.
@@ -166,7 +167,7 @@ function score(f::VMyriad{S,M}, x::AbstractVector{T}) where {T<:Real,S<:Real,M<:
     end
     s
 end
-score(f::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
+score(::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
 
 """
     Score of `x` based on frequency contours count.
@@ -182,13 +183,13 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     δf = frequency[2]-frequency[1]
     f.tnorm === nothing ? Nnorm = size(p, 2) : Nnorm = f.tnorm÷(δt) |> Int
     p    = spectrumflatten(p, Nnorm) #noise-flattened spectrogram
-    # crds,_ = @views peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), eps(T)+percentile(p[:, 1], f.minhprc))
-    crds, _ = findpeaks1d(p[:, 1]; height=eps(T)+percentile(p[:, 1], f.minhprc), distance=trunc(Int, f.minfdist/δf))
+    crds, _ = peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), eps(T)+percentile(p[:, 1], f.minhprc))
+    # crds, _ = findpeaks1d(p[:, 1]; height=eps(T)+percentile(p[:, 1], f.minhprc), distance=trunc(Int, f.minfdist/δf))
     ctrs = [[(crd, 1)] for crd in crds]
     for (i, col) in enumerate(eachcol(p[:, 2:end]))
         col = collect(col)
-        # crds,_ = Peaks.peakprom(col, Maxima(), trunc(Int, f.minfdist/δf), eps(T)+percentile(col, f.minhprc))
-        crds, _ = findpeaks1d(col; height=eps(T)+percentile(col, f.minhprc), distance=trunc(Int, f.minfdist/δf))
+        crds,_ = peakprom(col, Maxima(), trunc(Int, f.minfdist/δf), eps(T)+percentile(col, f.minhprc))
+        # crds, _ = findpeaks1d(col; height=eps(T)+percentile(col, f.minhprc), distance=trunc(Int, f.minfdist/δf))
         for crd in crds
             if length(ctrs) == 0
                 ctrs = [[(crd, 1)] for crd in crds]
@@ -237,8 +238,8 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     center = Statistics.median(x)
     height = center+f.k*mad(x, center=center, normalize=false)
     distance = trunc(Int, f.tdist*f.fs)
-    # crds, _ = Peaks.peakprom(x, Maxima(), distance, height)
-    crds,_ = findpeaks1d(x; height=height, distance=distance)
+    crds, _ = peakprom(x, Maxima(), distance, height)
+    # crds,_ = findpeaks1d(x; height=height, distance=distance)
     timeintervals = diff(crds)
     [length(crds) mean(timeintervals)/f.fs var(timeintervals)/f.fs]
 end
@@ -246,7 +247,7 @@ end
 """
 Score of `x` based on the parameters of Symmetric Alpha Stable Distributions. The parameter α measures the impulsiveness while the parameter scale measures the width of the distributions.
 """
-function score(f::AlphaStableStats, x::AbstractVector{T}) where T<:Real
+function score(::AlphaStableStats, x::AbstractVector{T}) where T<:Real
     d = fit(AlphaStable, x)
     [d.α d.scale]
 end
@@ -275,7 +276,7 @@ Score of `x` based on zero crossing rate.
 
 https://en.wikipedia.org/wiki/Zero-crossing_rate
 """
-function score(f::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
+function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
     count(!iszero, diff(x .> 0))/length(x)
 end
 
@@ -295,7 +296,7 @@ Score of `x` based on spectral flatness.
 
 https://en.wikipedia.org/wiki/Spectral_flatness
 """
-function score(f::SpectralFlatness, x::AbstractVector{T}) where T<:Real
+function score(::SpectralFlatness, x::AbstractVector{T}) where T<:Real
     magnitudes² = (abs.(rfft(x))).^2
     geomean(magnitudes²) / mean(magnitudes²)
 end
