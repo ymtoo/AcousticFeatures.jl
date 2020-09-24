@@ -25,11 +25,11 @@ using Pkg; pkg"add https://github.com/ymtoo/AcousticFeatures.jl.git"
 
 ## Usage
 ```julia
-using AcousticFeatures, Plots
+using AcousticFeatures, SignalAnalysis, Plots
 N  = 100_000
 fs = 100_000
 v  = randn(Float64, 3*N)
-s  = chirp(10_000, 30_000, 1.0, fs)
+s  = real(chirp(10_000, 30_000, 1.0, fs))
 x  = copy(v); x[N:2*N-1] += s
 plot((1:3*N) / fs, x,
     xlabel = "Time (sec)",
