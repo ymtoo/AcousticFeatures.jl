@@ -36,18 +36,18 @@ function myriadconstant(x::AbstractVector{T}) where T<:Real
     myriadconstant(d.α, d.scale)
 end
 
-"""
-Get vector myriad constants given α and Rₘ.
-"""
-vmyriadconstant(α::T, Rₘ::AbstractMatrix{T}) where T = (α/(2-α+eps())), Rₘ
+# """
+# Get vector myriad constants given α and Rₘ.
+# """
+# vmyriadconstant(α::T, Rₘ::AbstractMatrix{T}) where T = (α/(2-α+eps())), Rₘ
 
-"""
-Get vector myriad constants given `x`.
-"""
-function vmyriadconstant(x::AbstractVector{T}, m::Integer=4) where T<:Real
-    d = fit(AlphaSubGaussian, x, m)
-    vmyriadconstant(d.α, d.R)
-end
+# """
+# Get vector myriad constants given `x`.
+# """
+# function vmyriadconstant(x::AbstractVector{T}, m::Integer=4) where T<:Real
+#     d = fit(AlphaSubGaussian, x, m)
+#     vmyriadconstant(d.α, d.R)
+# end
 
 """
 Convert a real signal `x` to an acoustic pressure signal in micropascal.
