@@ -89,7 +89,6 @@ end
 Compute ordinal patterns of a real signal `x`.
 """
 function ordinalpatterns(x::AbstractVector{T}, m::Integer, τ::Integer=1) where T<:Real
-    maxnumperms = factorial(big(m))
     n = length(x) - τ*m + 1
     ps = []
     counts = []
