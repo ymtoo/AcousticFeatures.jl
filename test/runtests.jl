@@ -169,11 +169,14 @@ t = (0:N-1)./fs
         x = zeros(N)
         x[trueindices] .= 1.0
         x += 0.1 .* randn(N)
-        sc = Score(ImpulseStats(fs), x)
-        @test sc.s[1, 1] == length(trueindices)
+
+        sc1 = Score(ImpulseStats(fs), x)
+        sc2 = Score(ImpulseStats(fs, 10, 1e-3), x)
+        @test sc1.s[1, 1] == sc2.s[1, 1] == length(trueindices)
         truetimeintervals = diff(trueindices)
-        @test sc.s[1, 2] == mean(truetimeintervals)/fs
-        @test sc.s[1, 3] == var(truetimeintervals)/fs
+        @test sc1.s[1, 2] == sc2.s[1, 2] == mean(truetimeintervals)/fs
+        @test sc1.s[1, 3] == sc2.s[1, 3] == var(truetimeintervals)/fs
+
     end
 
     @testset "AlphaStableStats" begin
@@ -246,8 +249,10 @@ t = (0:N-1)./fs
         norm2 = true
         sc1 = Score(PermutationEntropy(m, τ, norm1), x)
         sc2 = Score(PermutationEntropy(m, τ, norm2), x)
+        sc3 = Score(PermutationEntropy(m), x)
         @test sc1.s[1] ≈ 1.5219 atol=0.0001
         @test sc2.s[1] ≈ 0.5887 atol=0.0001
+        @test sc2.s[1] == sc3.s[1] 
     end
 
     @testset "Subsequences" begin
