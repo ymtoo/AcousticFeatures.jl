@@ -1,9 +1,9 @@
 """Utility functions"""
 
-"""
-Compute the squared L2 norm.
-"""
-norm²(x) = sum(abs2, x)
+# """
+# Compute the squared L2 norm.
+# """
+# norm²(x) = sum(abs2, x)
 
 function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
     if Nnorm >= length(x)
