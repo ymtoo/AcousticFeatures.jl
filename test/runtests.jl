@@ -99,20 +99,21 @@ t = (0:N-1)./fs
         x1 = real(samples(chirp(f11, f21, duration, fs)))+real(samples(chirp(f12, f22, duration, fs)))
         x2 = real(samples(chirp(f11, f21, duration, fs)))
         n = 512
+        nv = 256
         tnorm = 1.0
         fd = 1000.0
         minhprc = 99.0
         minfdist = 1000.0
         mintlen = 0.05
-        sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x1)
-        sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x2)
+        sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x1)
+        sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x2)
         @test sc1.s[1] > sc2.s[1]
         winlens = [10_000, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(x1, winlen, noverlap)
-            sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x1, winlen=winlen, noverlap=noverlap)
-            sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), x2, winlen=winlen, noverlap=noverlap)
+            sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x1, winlen=winlen, noverlap=noverlap)
+            sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x2, winlen=winlen, noverlap=noverlap)
             spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(x1)-subseq.winlen÷2)]
             spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(x1)-subseq.winlen÷2)]
             @test all(isless.(spart2, spart1))
@@ -127,8 +128,8 @@ t = (0:N-1)./fs
         dfile2 = DistributedWAVFile(tmpdir2)
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(dfile1, winlen, noverlap)
-            sc1 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), dfile1, winlen=winlen, noverlap=noverlap)
-            sc2 = Score(FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen), dfile2, winlen=winlen, noverlap=noverlap)
+            sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), dfile1, winlen=winlen, noverlap=noverlap)
+            sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), dfile2, winlen=winlen, noverlap=noverlap)
             spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(dfile1)-subseq.winlen÷2)]
             spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(dfile1)-subseq.winlen÷2)]
             @test all(isless.(spart2, spart1))

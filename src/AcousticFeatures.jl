@@ -64,6 +64,7 @@ Myriad() = Myriad{Nothing}(nothing)
 struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     fs::FT
     n::Int
+    nv::Int # overlap
     tnorm::Union{Nothing,T} #time constant for normalization (sec)
     fd::T #frequency difference from one step to the next (Hz)
     minhprc::T
@@ -177,7 +178,7 @@ score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
     contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
 """
 function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
-    spec = spectrogram(x, f.n, f.n÷2; fs=f.fs, window=DSP.hamming)
+    spec = spectrogram(x, f.n, f.nv; fs=f.fs, window=DSP.hamming)
     p  = spec.power; frequency=spec.freq; t=spec.time
     δt = t[2]-t[1]
     δf = frequency[2]-frequency[1]

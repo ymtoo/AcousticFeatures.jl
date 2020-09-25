@@ -41,16 +41,16 @@ plot((1:3*N) / fs, x,
 ```
 ![window](timeseries.png)
 ```julia
-n = 512; tnorm = 1.0; fd=1000.0; minhprc = 99.0; minfdist = 1000.0
-mintlen = 0.05; winlen = 10_000; noverlap = 5_000
+n = 512; nv=256; tnorm = 1.0; fd=1000.0; minhprc = 99.0; 
+minfdist = 1000.0; mintlen = 0.05; winlen = 10_000; noverlap = 5_000
 sc1 = Score(
-    FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen),
+    FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen),
     v,
     winlen = winlen,
     noverlap = noverlap,
 )
 sc2 = Score(
-    FrequencyContours(fs, n, tnorm, fd, minhprc, minfdist, mintlen),
+    FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen),
     x,
     winlen = winlen,
     noverlap = noverlap,
