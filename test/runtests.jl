@@ -179,14 +179,14 @@ t = (0:N-1)./fs
 
     end
 
-    @testset "AlphaStableStats" begin
-        @info "Testing AlphaStableStats"
+    @testset "SymmetricAlphaStableStats" begin
+        @info "Testing SymmetricAlphaStableStats"
 
         α = 1.6
         scale = 2.0
         d = AlphaStable(α=α, scale=scale)
         x = rand(d, N)
-        sc = Score(AlphaStableStats(), x).s[1, :]
+        sc = Score(SymmetricAlphaStableStats(), x).s[1, :]
         @test sc[1] ≈ α atol=0.1
         @test sc[2] ≈ scale atol=0.1
 

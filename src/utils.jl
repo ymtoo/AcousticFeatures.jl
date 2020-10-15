@@ -4,7 +4,9 @@
 # Compute the squared L2 norm.
 # """
 # norm²(x) = sum(abs2, x)
-
+"""
+Spectral flattening.
+"""
 function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
     if Nnorm >= length(x)
         xfilt = x.-median(x)
@@ -16,7 +18,6 @@ function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
     xfilt[xfilt.<0] .= 0
     xfilt
 end
-
 function spectrumflatten(x::AbstractArray{T,2}, Nnorm::Int; dims::Int=2) where T <: Real
     mapslices(v->spectrumflatten(v, Nnorm), x, dims=dims)
 end

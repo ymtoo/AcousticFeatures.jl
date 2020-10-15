@@ -19,7 +19,7 @@ export
     FrequencyContours,
     SoundPressureLevel,
     ImpulseStats,
-    AlphaStableStats,
+    SymmetricAlphaStableStats,
     Entropy,
     ZeroCrossingRate,
     SpectralCentroid,
@@ -86,7 +86,7 @@ end
 ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3, true)
 ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true)
 
-struct AlphaStableStats <: AbstractAcousticFeature end
+struct SymmetricAlphaStableStats <: AbstractAcousticFeature end
 
 struct Entropy{FT<:Real} <: AbstractAcousticFeature
     n::Int
@@ -129,7 +129,7 @@ end
 """
     Score of `x` based on mean energy.
 """
-score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
+score(::Energy, x::AbstractVector{T}) where T<:Real = mean(abs2, x)
 
 """
     Score of `x` based on myriad.
@@ -140,7 +140,7 @@ score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 """
 function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real, S<:Real}
     sqKscale = f.sqKscale
-    [sum(x -> log(sqKscale + abs2(x)), x)]
+    sum(x -> log(sqKscale + abs2(x)), x)
 end
 
 score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
@@ -218,7 +218,7 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     end
     deleteat!(ctrs, idxdelete)
     count = isempty(ctrs) ? 0 : sum(length, ctrs)
-    [count/length(p)]
+    count/length(p)
 end
 
 """
@@ -226,7 +226,7 @@ Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In wate
 """
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     rmsx = sqrt(mean(abs2, x))
-    [20*log10(rmsx/f.ref)]
+    20*log10(rmsx/f.ref)
 end
 
 """
@@ -248,8 +248,8 @@ end
 """
 Score of `x` based on the parameters of Symmetric Alpha Stable Distributions. The parameter α measures the impulsiveness while the parameter scale measures the width of the distributions.
 """
-function score(::AlphaStableStats, x::AbstractVector{T}) where T<:Real
-    d = fit(AlphaStable, x)
+function score(::SymmetricAlphaStableStats, x::AbstractVector{T}) where T<:Real
+    d = fit(SymmetricAlphaStable, x)
     [d.α d.scale]
 end
 
