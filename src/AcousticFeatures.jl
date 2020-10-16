@@ -184,12 +184,12 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     δf = frequency[2]-frequency[1]
     f.tnorm === nothing ? Nnorm = size(p, 2) : Nnorm = f.tnorm÷(δt) |> Int
     p    = spectrumflatten(p, Nnorm) #noise-flattened spectrogram
-    crds, _ = peakprom(p[:, 1], Maxima(), trunc(Int, f.minfdist÷δf), eps(T)+percentile(p[:, 1], f.minhprc))
+    crds, _ = peakprom(Maxima(), p[:, 1], trunc(Int, f.minfdist÷δf); minprom=eps(T)+percentile(p[:, 1], f.minhprc))
     # crds, _ = findpeaks1d(p[:, 1]; height=eps(T)+percentile(p[:, 1], f.minhprc), distance=trunc(Int, f.minfdist/δf))
     ctrs = [[(crd, 1)] for crd in crds]
     for (i, col) in enumerate(eachcol(p[:, 2:end]))
         col = collect(col)
-        crds,_ = peakprom(col, Maxima(), trunc(Int, f.minfdist/δf), eps(T)+percentile(col, f.minhprc))
+        crds,_ = peakprom(Maxima(), col, trunc(Int, f.minfdist/δf); minprom=eps(T)+percentile(col, f.minhprc))
         # crds, _ = findpeaks1d(col; height=eps(T)+percentile(col, f.minhprc), distance=trunc(Int, f.minfdist/δf))
         for crd in crds
             if length(ctrs) == 0
@@ -239,7 +239,7 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     center = Statistics.median(x)
     height = center+f.k*mad(x, center=center, normalize=false)
     distance = trunc(Int, f.tdist*f.fs)
-    crds, _ = peakprom(x, Maxima(), distance, height)
+    crds, _ = peakprom(Maxima(), x, distance; minprom=height)
     # crds,_ = findpeaks1d(x; height=height, distance=distance)
     timeintervals = diff(crds)
     [length(crds) mean(timeintervals)/f.fs var(timeintervals)/f.fs]
