@@ -24,7 +24,6 @@ export
     ZeroCrossingRate,
     SpectralCentroid,
     SpectralFlatness,
-    SumAbsAutocor,
     PermutationEntropy,
     Score,
 
@@ -105,10 +104,10 @@ end
 struct SpectralFlatness <: AbstractAcousticFeature
 end
 
-struct SumAbsAutocor <: AbstractAcousticFeature
-    demean::Bool
-end
-SumAbsAutocor() = SumAbsAutocor(true)
+# struct SumAbsAutocor <: AbstractAcousticFeature
+#     demean::Bool
+# end
+# SumAbsAutocor() = SumAbsAutocor(true)
 
 struct PermutationEntropy <: AbstractAcousticFeature
     m::Integer
@@ -302,18 +301,18 @@ function score(::SpectralFlatness, x::AbstractVector{T}) where T<:Real
     geomean(magnitudes²) / mean(magnitudes²)
 end
 
-"""
-Score of `x` based on sum of absolute autocorrelation. 
-"""
-function score(f::SumAbsAutocor, x::AbstractVector{T}) where T<:Real
-#    ac = autocor(x, 0:length(x)-1; demean=f.demean)
-    if f.demean
-        x .-= mean(x)
-    end
-    actmp = xcorr(x, x)
-    ac = actmp[length(x):end] / actmp[length(x)]
-    sum(abs, ac)
-end
+# """
+# Score of `x` based on sum of absolute autocorrelation. 
+# """
+# function score(f::SumAbsAutocor, x::AbstractVector{T}) where T<:Real
+# #    ac = autocor(x, 0:length(x)-1; demean=f.demean)
+#     if f.demean
+#         x .-= mean(x)
+#     end
+#     actmp = xcorr(x, x)
+#     ac = actmp[length(x):end] / actmp[length(x)]
+#     sum(abs, ac)
+# end
 
 """
 Score of `x` based on permutation entropy.
