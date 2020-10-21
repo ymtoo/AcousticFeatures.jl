@@ -268,9 +268,9 @@ t = (0:N-1)./fs
         winlen = 3
         noverlap = 1
         subseqs1 = [[0, 1, 2],
-        [2, 3, 4],
-        [4, 5, 6],
-        [6, 7, 0]]
+                    [2, 3, 4],
+                    [4, 5, 6],
+                    [6, 7, 0]]
         subseqs2 = Subsequence(x, winlen, noverlap)
         subseqs3 = Subsequence(dfile, winlen, noverlap)
         @test length(subseqs1) == length(subseqs2) == length(subseqs3)
@@ -299,6 +299,58 @@ t = (0:N-1)./fs
                     [6, 7, 0, 0]]
         subseqs2 = Subsequence(x, winlen, noverlap)
         subseqs3 = Subsequence(dfile, winlen, noverlap)
+        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+            @test subseq1 == subseq2 == subseq3
+            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+        end
+
+        winlen = 4
+        noverlap = 1
+        subseqs1 = [[1, 1, 2, 3],
+                    [3, 4, 5, 6],
+                    [6, 7, 7, 7]]
+        subseqs2 = Subsequence(x, winlen, noverlap; padtype=:replicate)
+        subseqs3 = Subsequence(dfile, winlen, noverlap; padtype=:replicate)
+        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+            @test subseq1 == subseq2 == subseq3
+            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+        end
+
+        winlen = 4
+        noverlap = 1
+        subseqs1 = [[7, 1, 2, 3],
+                    [3, 4, 5, 6],
+                    [6, 7, 1, 2]]
+        subseqs2 = Subsequence(x, winlen, noverlap; padtype=:circular)
+        subseqs3 = Subsequence(dfile, winlen, noverlap; padtype=:circular)
+        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+            @test subseq1 == subseq2 == subseq3
+            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+        end
+
+        winlen = 4
+        noverlap = 1
+        subseqs1 = [[1, 1, 2, 3],
+                    [3, 4, 5, 6],
+                    [6, 7, 7, 6]]
+        subseqs2 = Subsequence(x, winlen, noverlap; padtype=:symmetric)
+        subseqs3 = Subsequence(dfile, winlen, noverlap; padtype=:symmetric)
+        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+            @test subseq1 == subseq2 == subseq3
+            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+        end
+
+        winlen = 4
+        noverlap = 1
+        subseqs1 = [[2, 1, 2, 3],
+                    [3, 4, 5, 6],
+                    [6, 7, 6, 5]]
+        subseqs2 = Subsequence(x, winlen, noverlap; padtype=:reflect)
+        subseqs3 = Subsequence(dfile, winlen, noverlap; padtype=:reflect)
         @test length(subseqs1) == length(subseqs2) == length(subseqs3)
         for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
             @test subseq1 == subseq2 == subseq3
