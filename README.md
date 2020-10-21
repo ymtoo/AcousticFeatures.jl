@@ -6,12 +6,12 @@ This package implements a set of generic acoustic features for time series acous
 
 The acoustic features are:
 - Energy
-- Myriad
-- Frequency Contours
-- Sound Pressure Level
+- [Myriad](https://link.springer.com/article/10.1155/S1110865702000483)
+- [Frequency Contours](https://asa.scitation.org/doi/10.1121/1.3531926)
+- [Sound Pressure Level](https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level)
 - Impulse Statistics (number of impulses, mean and variance of inter-impulse intervals)
-- Alpha Stable Statistics (α and scale)
-- Entropy (temporal entropy, spectral entropy and entropy index)
+- [Alpha Stable Statistics (α and scale)](https://en.wikipedia.org/wiki/Stable_distribution)
+- [Entropy (temporal entropy, spectral entropy and entropy index)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0004065)
 - [Zero Crossing Rate](https://en.wikipedia.org/wiki/Zero-crossing_rate)
 - [Spectral Centroid](https://en.wikipedia.org/wiki/Spectral_centroid)
 - [Spectral Flatness](https://en.wikipedia.org/wiki/Spectral_flatness)
