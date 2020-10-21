@@ -334,14 +334,15 @@ function Score(f::AbstractAcousticFeature,
                x::AbstractVector{T};
                winlen::Int=length(x),
                noverlap::Int=0,
+               padtype::Symbol=:fillzeros,
                subseqtype::DataType=Float64,
                preprocess::Function=x->x,
                map::Function=map,
-               showprogress::Bool=true) where {T<:Real, N, L}
+               showprogress::Bool=true) where {T<:Real}
     xlen = length(x)
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
-        subseqs = Subsequence(x, winlen, noverlap)
+        subseqs = Subsequence(x, winlen, noverlap; padtype=padtype)
 #        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
