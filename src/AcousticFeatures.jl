@@ -3,7 +3,7 @@ module AcousticFeatures
 using AlphaStableDistributions
 using DSP
 using FFTW
-using PaddedViews
+using ImageFiltering: BorderArray, Fill, Pad
 using Peaks
 using LinearAlgebra
 using Statistics
