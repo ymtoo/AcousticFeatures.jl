@@ -330,6 +330,15 @@ function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
     end
 end
 
+"""
+Compute acoustic feature `f` scores of a time series signal `x` using sliding windows. 
+
+By default, window length `winlen` is the length of `x`, i.e., the whole signal is used to compute 
+a score, and overlapping samples `noverlap` is 0. The `padtype` specifies the form of padding, and
+for more information, refer to `ImageFiltering.jl`. The signal is subject to preliminary processing
+`preprocess`. Acoustic feature scores of subseqences can be computed through mapping 
+`map`. `showprogress` is used to monitor the computations.
+"""
 function Score(f::AbstractAcousticFeature,
                x::AbstractVector{T};
                winlen::Int=length(x),
