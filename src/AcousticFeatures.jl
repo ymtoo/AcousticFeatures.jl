@@ -91,9 +91,7 @@ struct Entropy{FT<:Real} <: AbstractAcousticFeature
     n::Int
     noverlap::Int
     fs::FT
-    isspectrumflatten::Bool
 end
-Entropy(n, noverlap, fs) = Entropy(n, noverlap, fs, true)
 
 struct ZeroCrossingRate <: AbstractAcousticFeature end
 
@@ -260,7 +258,6 @@ J. Sueur, A. Farina, A. Gasc, N. Pieretti, S. Pavoine, Acoustic Indices for Biod
 """
 function score(f::Entropy, x::AbstractVector{T}) where T<:Real
     sp = spectrogram(x, f.n, f.noverlap; fs=f.fs).power
-    f.isspectrumflatten && (sp = spectrumflatten(sp, size(sp, 2)))
     ne = normalize_envelope(x)
     n = length(ne)
     Ht = -sum(ne .* log2.(ne)) ./ log2(n)

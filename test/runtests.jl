@@ -196,11 +196,11 @@ t = (0:N-1)./fs
         @info "Testing Entropy"
 
         x = A.*sin.(2π*6250*t)
-        sc = Score(Entropy(256, 128, fs, false), x)
+        sc = Score(Entropy(256, 128, fs), x)
         @test sc.s[1] ≈ 1.0 atol=1e-2
         @test sc.s[2] ≈ 0.0 atol=1e-2
         @test sc.s[3] ≈ 0.0 atol=1e-2
-
+        
     end
 
     @testset "ZeroCrossingRate" begin
