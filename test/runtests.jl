@@ -200,7 +200,7 @@ t = (0:N-1)./fs
         @test sc.s[1] ≈ 1.0 atol=1e-2
         @test sc.s[2] ≈ 0.0 atol=1e-2
         @test sc.s[3] ≈ 0.0 atol=1e-2
-        
+
     end
 
     @testset "ZeroCrossingRate" begin
@@ -419,5 +419,10 @@ t = (0:N-1)./fs
         @test t < 0.01
     end
 
+    @testset "Score" begin
+        @test_throws ArgumentError Score(Energy(), randn(1000); winlen=1001)
+        f = Energy()
+        @test Score(f, randn(100000)).s[1] ≈ f(randn(100000)).s[1] atol=0.01
+    end
 
 end
