@@ -110,8 +110,8 @@ end
 # SumAbsAutocor() = SumAbsAutocor(true)
 
 struct PermutationEntropy <: AbstractAcousticFeature
-    m::Integer
-    τ::Integer
+    m::Int
+    τ::Int
     normalization::Bool
 end
 PermutationEntropy(m) = PermutationEntropy(m, 1, true)
