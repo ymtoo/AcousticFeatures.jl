@@ -91,9 +91,7 @@ struct Entropy{FT<:Real} <: AbstractAcousticFeature
     n::Int
     noverlap::Int
     fs::FT
-    isspectrumflatten::Bool
 end
-Entropy(n, noverlap, fs) = Entropy(n, noverlap, fs, true)
 
 struct ZeroCrossingRate <: AbstractAcousticFeature end
 
@@ -110,8 +108,8 @@ end
 # SumAbsAutocor() = SumAbsAutocor(true)
 
 struct PermutationEntropy <: AbstractAcousticFeature
-    m::Integer
-    τ::Integer
+    m::Int
+    τ::Int
     normalization::Bool
 end
 PermutationEntropy(m) = PermutationEntropy(m, 1, true)
@@ -260,7 +258,6 @@ J. Sueur, A. Farina, A. Gasc, N. Pieretti, S. Pavoine, Acoustic Indices for Biod
 """
 function score(f::Entropy, x::AbstractVector{T}) where T<:Real
     sp = spectrogram(x, f.n, f.noverlap; fs=f.fs).power
-    f.isspectrumflatten && (sp = spectrumflatten(sp, size(sp, 2)))
     ne = normalize_envelope(x)
     n = length(ne)
     Ht = -sum(ne .* log2.(ne)) ./ log2(n)
@@ -330,6 +327,15 @@ function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
     end
 end
 
+"""
+Compute acoustic feature `f` scores of a time series signal `x` using sliding windows. 
+
+By default, window length `winlen` is the length of `x`, i.e., the whole signal is used to compute 
+a score, and overlapping samples `noverlap` is 0. The `padtype` specifies the form of padding, and
+for more information, refer to `ImageFiltering.jl`. The signal is subject to preliminary processing
+`preprocess`. Acoustic feature scores of subseqences can be computed through mapping 
+`map`. `showprogress` is used to monitor the computations.
+"""
 function Score(f::AbstractAcousticFeature,
                x::AbstractVector{T};
                winlen::Int=length(x),
