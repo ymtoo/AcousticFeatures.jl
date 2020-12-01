@@ -114,7 +114,7 @@ struct PermutationEntropy <: AbstractAcousticFeature
 end
 PermutationEntropy(m) = PermutationEntropy(m, 1, true)
 
-mutable struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
+struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
     indices::VT2
 end
@@ -168,11 +168,11 @@ score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 # score(::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
 
 """
-    Score of `x` based on frequency contours count.
+Score of `x` based on frequency contours count.
 
-    Reference:
-    D. Mellinger, R. Morrissey, L. Thomas, J. Yosco, "A method for detecting whistles, moans, and other frequency
-    contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
+Reference:
+D. Mellinger, R. Morrissey, L. Thomas, J. Yosco, "A method for detecting whistles, moans, and other frequency
+contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
 """
 function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     spec = spectrogram(x, f.n, f.nv; fs=f.fs, window=DSP.hamming)
@@ -352,11 +352,12 @@ function Score(f::AbstractAcousticFeature,
 #        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
-        if stmp isa Number
-            return Score(reshape([stmp], (1, 1)), 1:1)
-        else
-            return Score(stmp, 1:1)
-        end
+        return Score(reshape([stmp...], (1, length(stmp))), 1:1)
+        # if stmp isa Number
+        #     return reshape([stmp], (1, 1))#, 1:1#Score(reshape([stmp], (1, 1)), 1:1)
+        # else
+        #     return stmp#, 1:1#Score(stmp, 1:1)
+        # end
     else
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end

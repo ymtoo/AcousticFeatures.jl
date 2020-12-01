@@ -23,9 +23,12 @@ Create subsequences of a vector `c` given window length, non-overlapping length 
 The supported padding types are `:fillzeros`, `:replicate`, `:circular`, `:symmetric`, `:reflect`. 
 Details can be found at `ImageFiltering.Fill` and `ImageFiltering.Pad`. 
 """
-function Subsequence(c::AbstractVector{T}, winlen, noverlap; padtype::Symbol=:fillzeros) where T
+function Subsequence(c::AbstractVector{T}, 
+                     winlen::Int, 
+                     noverlap::Int; 
+                     padtype::Symbol=:fillzeros) where T
     winlen > length(c) && throw(ArgumentError("`winlen` has to be smaller than the signal length."))
-    step = winlen-noverlap
+    step = winlen - noverlap
     lpadlen, rpadlen = getpadlen(winlen)
     # Subsequence(c,
     #             fillvalue,
@@ -36,7 +39,7 @@ function Subsequence(c::AbstractVector{T}, winlen, noverlap; padtype::Symbol=:fi
     #             rpadlen)
 #    Subsequence(PaddedView(fillvalue, c, (1-lpadlen:length(c)+rpadlen,)), winlen, noverlap, step, lpadlen, rpadlen)
     if padtype == :fillzeros
-        pad = Fill(T(0), (lpadlen,), (rpadlen,))
+        pad = Fill(zero(T), (lpadlen,), (rpadlen,))
     else
         pad = Pad(padtype, (lpadlen,), (rpadlen,))
     end
