@@ -255,6 +255,14 @@ t = (0:N-1)./fs
         @test sc2.s[1] == sc3.s[1] 
     end
 
+    @testset "Score" begin
+        @info "Testing Score"
+        
+        @test_throws ArgumentError Score(Energy(), randn(1000); winlen=1001)
+        f = Energy()
+        @test Score(f, randn(100000)).s[1] ≈ f(randn(100000)).s[1] atol=0.01
+    end
+
     @testset "Subsequences" begin
         @info "Testing Subsequences"
 
@@ -417,12 +425,6 @@ t = (0:N-1)./fs
         @test t < 0.01
         t = @belapsed $subseqslf[100]
         @test t < 0.01
-    end
-
-    @testset "Score" begin
-        @test_throws ArgumentError Score(Energy(), randn(1000); winlen=1001)
-        f = Energy()
-        @test Score(f, randn(100000)).s[1] ≈ f(randn(100000)).s[1] atol=0.01
     end
 
 end
