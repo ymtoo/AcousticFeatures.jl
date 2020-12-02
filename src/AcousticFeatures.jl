@@ -239,7 +239,7 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     crds, _ = peakprom(Maxima(), x, distance; minprom=height)
     # crds,_ = findpeaks1d(x; height=height, distance=distance)
     timeintervals = diff(crds)
-    [length(crds) mean(timeintervals)/f.fs var(timeintervals)/f.fs]
+    [length(crds), mean(timeintervals)/f.fs, var(timeintervals)/f.fs]
 end
 
 """
@@ -247,7 +247,7 @@ Score of `x` based on the parameters of Symmetric Alpha Stable Distributions. Th
 """
 function score(::SymmetricAlphaStableStats, x::AbstractVector{T}) where T<:Real
     d = fit(SymmetricAlphaStable, x)
-    [d.α d.scale]
+    [d.α, d.scale]
 end
 
 """
@@ -265,7 +265,7 @@ function score(f::Entropy, x::AbstractVector{T}) where T<:Real
     N = length(ns)
     Hf = -sum(ns .* log2.(ns)) ./ log2.(N)
     H = Ht*Hf
-    [Ht Hf H]
+    [Ht, Hf, H]
 end
 
 """
@@ -352,7 +352,7 @@ function Score(f::AbstractAcousticFeature,
 #        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
-        return Score(reshape([stmp...], (1, length(stmp))), 1:1)
+        return Score(reshape([stmp...], (length(stmp), 1)), 1:1)
         # if stmp isa Number
         #     return reshape([stmp], (1, 1))#, 1:1#Score(reshape([stmp], (1, 1)), 1:1)
         # else
@@ -366,7 +366,8 @@ function Score(f::AbstractAcousticFeature,
     else
         s = map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
     end
-    Score(reshape(vcat(s...), (length(s), length(s[1]))), 1:subseqs.step:xlen)
+    Score(hcat(s...), 1:subseqs.step:xlen)
+    # Score(reshape(vcat(s...), (length(s), length(s[1]))), 1:subseqs.step:xlen)
     # @inbounds for (i, subseq) in enumerate(subseqs)
     #     sc.s[i, :] = score(f, preprocess(convert.(subseqtype, subseq)))
     # end
