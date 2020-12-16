@@ -375,6 +375,6 @@ function Score(f::AbstractAcousticFeature,
     # sc
 end
 
-(f::AbstractAcousticFeature)(x) = Score(f, x)
+(f::AbstractAcousticFeature)(x; kwargs...) = Score(f, x; kwargs...)
 
 end
