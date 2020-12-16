@@ -72,6 +72,10 @@ struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     mintlen::T
 end
 
+"""
+In water, the common reference `ref` is 1 micropascal. In air, the
+common reference `ref` is 20 micropascal.
+"""
 struct SoundPressureLevel{T<:Real} <: AbstractAcousticFeature
     ref::T
 end
@@ -125,22 +129,25 @@ end
 #
 ################################################################################
 """
-    Score of `x` based on mean energy.
+    score(::Energy, x::AbstractVector{T})
+
+Score of `x` based on mean energy.
 """
 score(::Energy, x::AbstractVector{T}) where T<:Real = mean(abs2, x)
 
 """
-    Score of `x` based on myriad.
+    Score(f::Myriad{S}, x::AbstractVector{T})
 
-    Reference:
-    Mahmood et. al., "Optimal and Near-Optimal Detection in Bursty Impulsive Noise,"
-    IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
+Score of `x` based on myriad.
+
+Reference:
+Mahmood et. al., "Optimal and Near-Optimal Detection in Bursty Impulsive Noise,"
+IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
 """
-function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real, S<:Real}
+function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real,S<:Real}
     sqKscale = f.sqKscale
     sum(x -> log(sqKscale + abs2(x)), x)
 end
-
 score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
 # """
@@ -169,6 +176,8 @@ score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 # score(::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
 
 """
+    score(f::FrequencyContours, x::AbstractVector{T})
+
 Score of `x` based on frequency contours count.
 
 Reference:
@@ -220,7 +229,9 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
 end
 
 """
-Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal. In water, the common reference is 1 micropascal. In air, the common reference is 20 micropascal.
+    score(f::SoundPressureLevel, x::AbstractVector{T})
+
+Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal.
 """
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     rmsx = sqrt(mean(abs2, x))
@@ -228,7 +239,15 @@ function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
 end
 
 """
-Score of `x` based on number of impulses, mean and variance of inter-impulse intervals. The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
+    score(f::ImpulseStats, x::AbstractVector{T})
+
+Score of `x` based on number of impulses, mean and variance of inter-impulse intervals.
+The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope
+of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
+
+Reference:
+Matthew W Legg et al., "Analysis of impulsive biological noise due to snapping shrimp as a
+point process in time", 2007.
 """
 function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     if f.computeenvelope
@@ -244,7 +263,11 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
 end
 
 """
-Score of `x` based on the parameters of Symmetric Alpha Stable Distributions. The parameter α measures the impulsiveness while the parameter scale measures the width of the distributions.
+    score(::SymmetricAlphaStableStats, x::AbstractVector{T})
+
+Score of `x` based on the parameters of Symmetric Alpha Stable Distributions.
+The parameter α measures the impulsiveness while the parameter scale measures
+the width of the distributions.
 """
 function score(::SymmetricAlphaStableStats, x::AbstractVector{T}) where T<:Real
     d = fit(SymmetricAlphaStable, x)
@@ -252,10 +275,13 @@ function score(::SymmetricAlphaStableStats, x::AbstractVector{T}) where T<:Real
 end
 
 """
+    score(f::Entropy, x::AbstractVector{T})
+
 Score of `x` based on temporal entropy, spectral entropy and entropy index.
 
 Reference:
-J. Sueur, A. Farina, A. Gasc, N. Pieretti, S. Pavoine, Acoustic Indices for Biodiversity Assessment and Landscape Investigation, 2014.
+J. Sueur, A. Farina, A. Gasc, N. Pieretti, S. Pavoine, Acoustic Indices for Biodiversity
+Assessment and Landscape Investigation, 2014.
 """
 function score(f::Entropy, x::AbstractVector{T}) where T<:Real
     sp = spectrogram(x, f.n, f.noverlap; fs=f.fs).power
@@ -270,6 +296,8 @@ function score(f::Entropy, x::AbstractVector{T}) where T<:Real
 end
 
 """
+    score(::ZeroCrossingRate, x::AbstractVector{T})
+
 Score of `x` based on zero crossing rate.
 
 https://en.wikipedia.org/wiki/Zero-crossing_rate
@@ -279,6 +307,8 @@ function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
 end
 
 """
+    score(f::SpectralCentroid, x::AbstractVector{T})
+
 Score of `x` based on spectral centroid.
 
 https://en.wikipedia.org/wiki/Spectral_centroid
@@ -290,6 +320,8 @@ function score(f::SpectralCentroid, x::AbstractVector{T}) where T<:Real
 end
 
 """
+    score(::SpectralFlatness, x::AbstractVector{T})
+
 Score of `x` based on spectral flatness.
 
 https://en.wikipedia.org/wiki/Spectral_flatness
@@ -313,6 +345,8 @@ end
 # end
 
 """
+    score(f::PermutationEntropy, x::AbstractVector{T})
+
 Score of `x` based on permutation entropy.
 
 C. Bandt, B. Pompe, "Permutation entropy: a natural complexity measure for time series",
@@ -329,6 +363,16 @@ function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
 end
 
 """
+    Score(f, 
+          x; 
+          winlen=length(x), 
+          noverlap=0, 
+          padtype=:fillzeros, 
+          subseqtype=Float64,
+          preprocess=identity,
+          map=map,
+          showprogress=true)
+
 Compute acoustic feature `f` scores of a time series signal `x` using sliding windows. 
 
 By default, window length `winlen` is the length of `x`, i.e., the whole signal is used to compute 
@@ -343,7 +387,7 @@ function Score(f::AbstractAcousticFeature,
                noverlap::Int=0,
                padtype::Symbol=:fillzeros,
                subseqtype::DataType=Float64,
-               preprocess::Function=x->x,
+               preprocess::Function=identity,
                map::Function=map,
                showprogress::Bool=true) where {T<:Real}
     xlen = length(x)
