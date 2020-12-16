@@ -254,7 +254,7 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
         x = envelope(x)
     end
     center = Statistics.median(x)
-    height = center+f.k*mad(x, center=center, normalize=false)
+    height = center+f.k*mad(x, center=center, normalize=true)
     distance = trunc(Int, f.tdist*f.fs)
     # crds, _ = peakprom(Maxima(), x, distance; minprom=height)
     crds,_ = findpeaks1d(x; height=height, distance=distance)
