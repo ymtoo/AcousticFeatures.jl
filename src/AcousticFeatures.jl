@@ -397,7 +397,7 @@ function Score(f::AbstractAcousticFeature,
 #        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
-        return Score(reshape([stmp...], (length(stmp), 1)), 1:1)
+        return Score(reshape([stmp...], (1, length(stmp))), 1:1)
         # if stmp isa Number
         #     return reshape([stmp], (1, 1))#, 1:1#Score(reshape([stmp], (1, 1)), 1:1)
         # else
@@ -411,7 +411,8 @@ function Score(f::AbstractAcousticFeature,
     else
         s = map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
     end
-    Score(hcat(s...), 1:subseqs.step:xlen)
+    Score(mapreduce(transpose, vcat, s), 1:subseqs.step:xlen)
+    #Score(hcat(s...), 1:subseqs.step:xlen)
     # Score(reshape(vcat(s...), (length(s), length(s[1]))), 1:subseqs.step:xlen)
     # @inbounds for (i, subseq) in enumerate(subseqs)
     #     sc.s[i, :] = score(f, preprocess(convert.(subseqtype, subseq)))
