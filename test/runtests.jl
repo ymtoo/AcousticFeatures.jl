@@ -214,12 +214,12 @@ t = (0:N-1)./fs
         @info "Testing Entropy"
 
         x = A.*sin.(2π*6250*t)
-        sc = Score(Entropy(256, 128, fs), x)
+        sc = Score(Entropy(fs, 256, 128), x)
         @test sc[1] ≈ 1.0 atol=1e-2
         @test sc[2] ≈ 0.0 atol=1e-2
         @test sc[3] ≈ 0.0 atol=1e-2
 
-        @test name(Entropy(256, 128, fs)) == ["TemporalEntropy","SpectralEntropy","EntropyIndex"]
+        @test name(Entropy(fs, 256, 128)) == ["TemporalEntropy","SpectralEntropy","EntropyIndex"]
     end
 
     @testset "ZeroCrossingRate" begin

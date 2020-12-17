@@ -99,9 +99,9 @@ struct SymmetricAlphaStableStats <: AbstractAcousticFeature end
 name(::SymmetricAlphaStableStats) = ["α", "scale"]
 
 struct Entropy{FT<:Real} <: AbstractAcousticFeature
+    fs::FT
     n::Int
     noverlap::Int
-    fs::FT
 end
 name(::Entropy) = ["TemporalEntropy","SpectralEntropy","EntropyIndex"]
 
