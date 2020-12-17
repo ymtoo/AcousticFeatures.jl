@@ -1,10 +1,10 @@
 module AcousticFeatures
 
 using AlphaStableDistributions
+using AxisArrays
 using DSP
 using FFTW
 using ImageFiltering: BorderArray, Fill, Pad
-# using Peaks
 using LinearAlgebra
 using FindPeaks1D
 using Statistics
@@ -49,11 +49,13 @@ abstract type AbstractAcousticFeature end
 #
 ################################################################################
 struct Energy <: AbstractAcousticFeature end
+name(::Energy) = ["Energy"]
 
 struct Myriad{T<:Union{Nothing,Real}} <: AbstractAcousticFeature
     sqKscale::T
 end
 Myriad() = Myriad{Nothing}(nothing)
+name(::Myriad) = ["Myriad"]
 
 # struct VMyriad{T<:Union{Nothing,Real},M<:Union{Nothing,AbstractMatrix}} <: AbstractAcousticFeature
 #     K²::T
@@ -71,6 +73,7 @@ struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     minfdist::T
     mintlen::T
 end
+name(::FrequencyContours) = ["FrequencyContours"]
 
 """
 In water, the common reference `ref` is 1 micropascal. In air, the
@@ -80,6 +83,7 @@ struct SoundPressureLevel{T<:Real} <: AbstractAcousticFeature
     ref::T
 end
 SoundPressureLevel() = SoundPressureLevel(1.0)
+name(::SoundPressureLevel) = ["SPL"]
 
 struct ImpulseStats{FT<:Real,T<:Real} <: AbstractAcousticFeature
     fs::FT
@@ -89,23 +93,28 @@ struct ImpulseStats{FT<:Real,T<:Real} <: AbstractAcousticFeature
 end
 ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3, true)
 ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true)
+name(::ImpulseStats) = ["Nᵢ", "μᵢᵢ", "varᵢᵢ"] 
 
 struct SymmetricAlphaStableStats <: AbstractAcousticFeature end
+name(::SymmetricAlphaStableStats) = ["α", "scale"]
 
 struct Entropy{FT<:Real} <: AbstractAcousticFeature
     n::Int
     noverlap::Int
     fs::FT
 end
+name(::Entropy) = ["TemporalEntropy","SpectralEntropy","EntropyIndex"]
 
 struct ZeroCrossingRate <: AbstractAcousticFeature end
+name(::ZeroCrossingRate) = ["ZCR"]
 
 struct SpectralCentroid{FT<:Real} <: AbstractAcousticFeature
     fs::FT
 end
+name(::SpectralCentroid) = ["SpectralCentroid"]
 
-struct SpectralFlatness <: AbstractAcousticFeature
-end
+struct SpectralFlatness <: AbstractAcousticFeature end
+name(::SpectralFlatness) = ["SpectralFlatness"]
 
 # struct SumAbsAutocor <: AbstractAcousticFeature
 #     demean::Bool
@@ -118,6 +127,7 @@ struct PermutationEntropy <: AbstractAcousticFeature
     normalization::Bool
 end
 PermutationEntropy(m) = PermutationEntropy(m, 1, true)
+name(::PermutationEntropy) = ["PermutationEntropy"]
 
 struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
     s::VT1
@@ -133,7 +143,7 @@ end
 
 Score of `x` based on mean energy.
 """
-score(::Energy, x::AbstractVector{T}) where T<:Real = mean(abs2, x)
+score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 
 """
     Score(f::Myriad{S}, x::AbstractVector{T})
@@ -146,7 +156,7 @@ IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
 """
 function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real,S<:Real}
     sqKscale = f.sqKscale
-    sum(x -> log(sqKscale + abs2(x)), x)
+    [sum(x -> log(sqKscale + abs2(x)), x)]
 end
 score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
@@ -225,7 +235,7 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     end
     deleteat!(ctrs, idxdelete)
     count = isempty(ctrs) ? 0 : sum(length, ctrs)
-    count/length(p)
+    [count/length(p)]
 end
 
 """
@@ -235,7 +245,7 @@ Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal.
 """
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     rmsx = sqrt(mean(abs2, x))
-    20*log10(rmsx/f.ref)
+    [20*log10(rmsx/f.ref)]
 end
 
 """
@@ -303,7 +313,7 @@ Score of `x` based on zero crossing rate.
 https://en.wikipedia.org/wiki/Zero-crossing_rate
 """
 function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
-    count(!iszero, diff(x .> 0))/length(x)
+    [count(!iszero, diff(x .> 0))/length(x)]
 end
 
 """
@@ -316,7 +326,7 @@ https://en.wikipedia.org/wiki/Spectral_centroid
 function score(f::SpectralCentroid, x::AbstractVector{T}) where T<:Real
     magnitudes = abs.(rfft(x))
     freqs = FFTW.rfftfreq(length(x), f.fs)
-    sum(magnitudes .* freqs) / sum(magnitudes)
+    [sum(magnitudes .* freqs) / sum(magnitudes)]
 end
 
 """
@@ -328,7 +338,7 @@ https://en.wikipedia.org/wiki/Spectral_flatness
 """
 function score(::SpectralFlatness, x::AbstractVector{T}) where T<:Real
     magnitudes² = (abs.(rfft(x))).^2
-    geomean(magnitudes²) / mean(magnitudes²)
+    [geomean(magnitudes²) / mean(magnitudes²)]
 end
 
 # """
@@ -356,9 +366,9 @@ function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
     p = ordinalpatterns(x, f.m, f.τ)
     pe = -sum(p .* log2.(p))
     if f.normalization
-        pe / convert(eltype(pe), log2(factorial(big(f.m))))
+        [pe / convert(eltype(pe), log2(factorial(big(f.m))))]
     else
-        pe
+        [pe]
     end
 end
 
@@ -397,7 +407,8 @@ function Score(f::AbstractAcousticFeature,
 #        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
-        return Score(reshape([stmp...], (1, length(stmp))), 1:1)
+        return AxisArray(reshape([stmp...], (1, length(stmp))); row=1:1, col=name(f))
+        #return Score(reshape([stmp...], (1, length(stmp))), 1:1)
         # if stmp isa Number
         #     return reshape([stmp], (1, 1))#, 1:1#Score(reshape([stmp], (1, 1)), 1:1)
         # else
@@ -411,7 +422,8 @@ function Score(f::AbstractAcousticFeature,
     else
         s = map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
     end
-    Score(mapreduce(transpose, vcat, s), 1:subseqs.step:xlen)
+    # Score(mapreduce(transpose, vcat, s), 1:subseqs.step:xlen)
+    AxisArray(mapreduce(transpose, vcat, s); row=1:subseqs.step:xlen, col=name(f))
     #Score(hcat(s...), 1:subseqs.step:xlen)
     # Score(reshape(vcat(s...), (length(s), length(s[1]))), 1:subseqs.step:xlen)
     # @inbounds for (i, subseq) in enumerate(subseqs)
