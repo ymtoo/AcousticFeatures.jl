@@ -255,15 +255,6 @@ t = (0:N-1)./fs
         @test name(SpectralFlatness()) == ["SpectralFlatness"]
     end
 
-    # @testset "SumAbsAutocor" begin
-    #     @info "Testing SumAbsAutocor"
-
-    #     x = A.*sin.(2π*6250*t)
-    #     y = A.*cos.(2π*6250*t)
-    #     sc = Score(SumAbsAutocor(), x)
-    #     @test sc.s[1] / length(x) ≈ sum(abs, y) / 2 / length(x) atol=0.0001
-    # end
-
     @testset "PermutationEntropy" begin
         @info "Testing PermutationEntropy"
 

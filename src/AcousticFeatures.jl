@@ -36,7 +36,7 @@ export
     myriadconstant,
     vmyriadconstant,
     pressure,
-    nvelope
+    envelope
 
 include("subsequences.jl")
 include("utils.jl")
@@ -116,11 +116,6 @@ name(::SpectralCentroid) = ["SpectralCentroid"]
 struct SpectralFlatness <: AbstractAcousticFeature end
 name(::SpectralFlatness) = ["SpectralFlatness"]
 
-# struct SumAbsAutocor <: AbstractAcousticFeature
-#     demean::Bool
-# end
-# SumAbsAutocor() = SumAbsAutocor(true)
-
 struct PermutationEntropy <: AbstractAcousticFeature
     m::Int
     τ::Int
@@ -129,10 +124,6 @@ end
 PermutationEntropy(m) = PermutationEntropy(m, 1, true)
 name(::PermutationEntropy) = ["PermutationEntropy"]
 
-struct Score{VT1<:AbstractArray{<:Real},VT2<:AbstractRange{Int}}
-    s::VT1
-    indices::VT2
-end
 ################################################################################
 #
 #   Implementations
@@ -341,19 +332,6 @@ function score(::SpectralFlatness, x::AbstractVector{T}) where T<:Real
     [geomean(magnitudes²) / mean(magnitudes²)]
 end
 
-# """
-# Score of `x` based on sum of absolute autocorrelation. 
-# """
-# function score(f::SumAbsAutocor, x::AbstractVector{T}) where T<:Real
-# #    ac = autocor(x, 0:length(x)-1; demean=f.demean)
-#     if f.demean
-#         x .-= mean(x)
-#     end
-#     actmp = xcorr(x, x)
-#     ac = actmp[length(x):end] / actmp[length(x)]
-#     sum(abs, ac)
-# end
-
 """
     score(f::PermutationEntropy, x::AbstractVector{T})
 
@@ -404,16 +382,9 @@ function Score(f::AbstractAcousticFeature,
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
         subseqs = Subsequence(x, winlen, noverlap; padtype=padtype)
-#        sc = Score(zeros(outputeltype(f), length(subseqs), outputndims(f)), 1:subseqs.step:xlen)
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
         return AxisArray(reshape([stmp...], (1, length(stmp))); row=1:1, col=name(f))
-        #return Score(reshape([stmp...], (1, length(stmp))), 1:1)
-        # if stmp isa Number
-        #     return reshape([stmp], (1, 1))#, 1:1#Score(reshape([stmp], (1, 1)), 1:1)
-        # else
-        #     return stmp#, 1:1#Score(stmp, 1:1)
-        # end
     else
         throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
@@ -422,14 +393,7 @@ function Score(f::AbstractAcousticFeature,
     else
         s = map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
     end
-    # Score(mapreduce(transpose, vcat, s), 1:subseqs.step:xlen)
     AxisArray(mapreduce(transpose, vcat, s); row=1:subseqs.step:xlen, col=name(f))
-    #Score(hcat(s...), 1:subseqs.step:xlen)
-    # Score(reshape(vcat(s...), (length(s), length(s[1]))), 1:subseqs.step:xlen)
-    # @inbounds for (i, subseq) in enumerate(subseqs)
-    #     sc.s[i, :] = score(f, preprocess(convert.(subseqtype, subseq)))
-    # end
-    # sc
 end
 
 (f::AbstractAcousticFeature)(x; kwargs...) = Score(f, x; kwargs...)
