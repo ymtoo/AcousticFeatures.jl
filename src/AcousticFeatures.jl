@@ -130,9 +130,28 @@ name(::PermutationEntropy) = ["PermutationEntropy"]
 #
 ################################################################################
 """
-    score(::Energy, x::AbstractVector{T})
+    score(::Energy, x::AbstractVector{T}) where {T<:Real}
 
 Score of `x` based on mean energy.
+
+# Examples:
+```julia-repl
+julia> x = Score(Energy(), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["Energy"]
+And data, a 1×1 Array{Float64,2}:
+ 0.9960607967861373
+
+julia> x = Score(Energy(), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["Energy"]
+And data, a 20×1 Array{Float64,2}:
+ 0.5280804987356663
+ ⋮
+ 0.9988797206321275
+```
 """
 score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 
@@ -141,9 +160,31 @@ score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 
 Score of `x` based on myriad.
 
-Reference:
+# Reference:
 Mahmood et. al., "Optimal and Near-Optimal Detection in Bursty Impulsive Noise,"
 IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
+
+# Examples:
+```julia-repl
+julia> x = Score(Myriad(), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["Myriad"]
+And data, a 1×1 Array{Float64,2}:
+ 27691.956992339285
+
+julia> x = Score(Myriad(), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["Myriad"]
+And data, a 20×1 Array{Float64,2}:
+ -5487.396124602646
+  1977.7969182956683
+  3216.396756712948
+     ⋮
+  2651.158251224668
+  3246.7097026864853
+```
 """
 function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real,S<:Real}
     sqKscale = f.sqKscale
@@ -181,9 +222,33 @@ score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 
 Score of `x` based on frequency contours count.
 
-Reference:
+# Reference:
 D. Mellinger, R. Morrissey, L. Thomas, J. Yosco, "A method for detecting whistles, moans, and other frequency
 contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
+
+# Examples:
+```julia-repl
+julia> x = Score(FrequencyContours(9600, 512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["FrequencyContours"]
+And data, a 1×1 Array{Float64,2}:
+ 0.0038910505836575876
+
+julia> x = Score(FrequencyContours(9600, 512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["FrequencyContours"]
+And data, a 20×1 Array{Float64,2}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ ⋮
+ 0.0
+ 0.0
+ 0.0
+```
 """
 function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     spec = spectrogram(x, f.n, f.nv; fs=f.fs, window=DSP.hamming)
@@ -233,6 +298,24 @@ end
     score(f::SoundPressureLevel, x::AbstractVector{T})
 
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal.
+
+# Examples:
+julia> x = Score(SoundPressureLevel(), randn(9600))2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["SPL"]
+And data, a 1×1 Array{Float64,2}:
+ -0.08307636105819256
+
+julia> x = Score(SoundPressureLevel(), randn(9600); winlen=960, noverlap=480)2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["SPL"]
+And data, a 20×1 Array{Float64,2}:
+ -2.369874304880999
+  0.2795371978218069
+  ⋮
+ -0.04985476533237352
+  0.11412307503113574
+```
 """
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
     rmsx = sqrt(mean(abs2, x))
@@ -246,9 +329,33 @@ Score of `x` based on number of impulses, mean and variance of inter-impulse int
 The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope
 of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
 
-Reference:
+# Reference:
 Matthew W Legg et al., "Analysis of impulsive biological noise due to snapping shrimp as a
 point process in time", 2007.
+
+# Examples:
+```julia-repl
+julia> x = Score(ImpulseStats(9600, 10, 0.01), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
+And data, a 1×3 Array{Float64,2}:
+ 0.0  0.0  0.0
+
+julia> x = Score(ImpulseStats(9600, 10, 0.01), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
+And data, a 20×3 Array{Float64,2}:
+ 4.0  0.0140972  0.0621181
+ 0.0  0.0        0.0
+ 0.0  0.0        0.0
+ 0.0  0.0        0.0
+ ⋮               
+ 0.0  0.0        0.0
+ 0.0  0.0        0.0
+ 0.0  0.0        0.0
+```
 """
 function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     if f.computeenvelope
@@ -260,7 +367,7 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     # crds, _ = peakprom(Maxima(), x, distance; minprom=height)
     crds,_ = findpeaks1d(x; height=height, distance=distance)
     timeintervals = diff(crds)
-    [length(crds), mean(timeintervals)/f.fs, var(timeintervals)/f.fs]
+    isempty(crds) ? [zero(T), zero(T), zero(T)] : [length(crds), mean(timeintervals)/f.fs, var(timeintervals)/f.fs]
 end
 
 """
@@ -269,6 +376,31 @@ end
 Score of `x` based on the parameters of Symmetric Alpha Stable Distributions.
 The parameter α measures the impulsiveness while the parameter scale measures
 the width of the distributions.
+
+# Reference:
+https://github.com/org-arl/AlphaStableDistributions.jl
+
+# Examples:
+```julia-repl
+julia> x = Score(SymmetricAlphaStableStats(), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["α", "scale"]
+And data, a 1×2 Array{Float64,2}:
+ 2.0  0.714388
+
+julia> x = Score(SymmetricAlphaStableStats(), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["α", "scale"]
+And data, a 20×2 Array{Float64,2}:
+ 0.5      0.0
+ 1.90067  0.663918
+ 1.83559  0.614218
+ ⋮        
+ 1.80072  0.676852
+ 1.94506  0.677581
+```
 """
 function score(::SymmetricAlphaStableStats, x::AbstractVector{T}) where T<:Real
     d = fit(SymmetricAlphaStable, x)
@@ -280,9 +412,35 @@ end
 
 Score of `x` based on temporal entropy, spectral entropy and entropy index.
 
-Reference:
+# Reference:
 J. Sueur, A. Farina, A. Gasc, N. Pieretti, S. Pavoine, Acoustic Indices for Biodiversity
 Assessment and Landscape Investigation, 2014.
+
+# Examples:
+```julia-repl
+julia> x = Score(Entropy(9600, 96, 48), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["TemporalEntropy", "SpectralEntropy", "EntropyIndex"]
+And data, a 1×3 Array{Float64,2}:
+ 0.984457  0.997608  0.982103
+
+julia> x = Score(Entropy(9600, 96, 48), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["TemporalEntropy", "SpectralEntropy", "EntropyIndex"]
+And data, a 20×3 Array{Float64,2}:
+ 0.903053  0.982299  0.887068
+ 0.980151  0.986018  0.966446
+ 0.981492  0.984845  0.966618
+ 0.980283  0.986635  0.967182
+ 0.978714  0.987383  0.966366
+ ⋮                   
+ 0.97895   0.986322  0.96556
+ 0.980274  0.983338  0.963941
+ 0.980822  0.99296   0.973917
+ 0.979092  0.989817  0.969122
+```
 """
 function score(f::Entropy, x::AbstractVector{T}) where T<:Real
     sp = spectrogram(x, f.n, f.noverlap; fs=f.fs).power
@@ -301,7 +459,35 @@ end
 
 Score of `x` based on zero crossing rate.
 
+# Refernce:
 https://en.wikipedia.org/wiki/Zero-crossing_rate
+
+# Examples:
+```julia-repl
+julia> x = Score(ZeroCrossingRate(), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["ZCR"]
+And data, a 1×1 Array{Float64,2}:
+ 0.5027083333333333
+
+julia> x = Score(ZeroCrossingRate(), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["ZCR"]
+And data, a 20×1 Array{Float64,2}:
+ 0.2375
+ 0.46979166666666666
+ 0.4708333333333333
+ 0.49583333333333335
+ 0.5072916666666667
+ ⋮
+ 0.5145833333333333
+ 0.49375
+ 0.5052083333333334
+ 0.5125
+ 0.4947916666666667
+```
 """
 function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
     [count(!iszero, diff(x .> 0))/length(x)]
@@ -312,7 +498,33 @@ end
 
 Score of `x` based on spectral centroid.
 
+# Reference:
 https://en.wikipedia.org/wiki/Spectral_centroid
+
+# Examples:
+```julia-repl
+julia> x = Score(SpectralCentroid(9600), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["SpectralCentroid"]
+And data, a 1×1 Array{Float64,2}:
+ 2387.4592177121676
+
+julia> x = Score(SpectralCentroid(9600), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["SpectralCentroid"]
+And data, a 20×1 Array{Float64,2}:
+ 2398.6889311658415
+ 2362.570125358973
+ 2342.6919660952803
+ 2375.5903954079977
+    ⋮
+ 2415.431353476017
+ 2453.7105902333437
+ 2449.222535628719
+ 2380.319011105224
+```
 """
 function score(f::SpectralCentroid, x::AbstractVector{T}) where T<:Real
     magnitudes = abs.(rfft(x))
@@ -325,7 +537,33 @@ end
 
 Score of `x` based on spectral flatness.
 
+# Reference:
 https://en.wikipedia.org/wiki/Spectral_flatness
+
+# Examples:
+```julia-repl
+julia> x = Score(SpectralFlatness(), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["SpectralFlatness"]
+And data, a 1×1 Array{Float64,2}:
+ 0.5598932661540399
+
+julia> x = Score(SpectralFlatness(), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["SpectralFlatness"]
+And data, a 20×1 Array{Float64,2}:
+ 0.5661636483227057
+ 0.543740942647357
+ 0.5854629162797854
+ 0.532148471407988
+ ⋮
+ 0.5451002001200566
+ 0.5496170417608265
+ 0.537335859768483
+ 0.535056705285523
+```
 """
 function score(::SpectralFlatness, x::AbstractVector{T}) where T<:Real
     magnitudes² = (abs.(rfft(x))).^2
@@ -337,8 +575,34 @@ end
 
 Score of `x` based on permutation entropy.
 
+# Reference:
 C. Bandt, B. Pompe, "Permutation entropy: a natural complexity measure for time series",
 Phys. Rev. Lett., 88 (17), 2002
+
+# Examples:
+```julia-repl
+julia> x = Score(PermutationEntropy(7), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["PermutationEntropy"]
+And data, a 1×1 Array{Float64,2}:
+ 0.9637270776723836
+
+julia> x = Score(PermutationEntropy(7), randn(9600), winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["PermutationEntropy"]
+And data, a 20×1 Array{Float64,2}:
+ 0.4432867336969194
+ 0.7896679491573086
+ 0.7914368148634888
+ 0.790455877419772
+ ⋮
+ 0.7894106035823039
+ 0.7886452315698513
+ 0.7897322855510599
+ 0.7884747786386084
+```
 """
 function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
     p = ordinalpatterns(x, f.m, f.τ)
@@ -377,7 +641,7 @@ function Score(f::AbstractAcousticFeature,
                subseqtype::DataType=Float64,
                preprocess::Function=identity,
                map::Function=map,
-               showprogress::Bool=true) where {T<:Real}
+               showprogress::Bool=false) where {T<:Real}
     xlen = length(x)
     if winlen < xlen
         (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
