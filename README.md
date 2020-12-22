@@ -1,5 +1,5 @@
 # AcousticFeatures
-[![Build Status](https://travis-ci.org/ymtoo/AcousticFeatures.jl.svg?branch=master)](https://travis-ci.org/ymtoo/AcousticFeatures.jl)
+![CI](https://github.com/ymtoo/AcousticFeatures.jl/workflows/CI/badge.svg)
 [![codecov](https://codecov.io/gh/ymtoo/AcousticFeatures.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/ymtoo/AcousticFeatures.jl)
 
 This package implements a set of methods to compute generic acoustic features in [AxisArrays](https://github.com/JuliaArrays/AxisArrays.jl.git) for 1-D time series acoustic data.
