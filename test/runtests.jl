@@ -183,7 +183,7 @@ t = (0:N-1)./fs
 
         trueindices = [101, 2254, 5322, 8888]
         x = zeros(N)
-        x[trueindices] .= 1.0
+        x[trueindices] .= 10.0
         x += 0.1 .* randn(N)
 
         sc1 = Score(ImpulseStats(fs), x)
