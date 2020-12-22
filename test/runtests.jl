@@ -278,7 +278,7 @@ t = (0:N-1)./fs
         
         @test_throws ArgumentError Score(Energy(), randn(1000); winlen=1001)
         f = Energy()
-        @test Score(f, randn(100000))[1] ≈ f(randn(100000))[1] atol=0.01
+        @test Score(f, randn(100000))[1] ≈ f(randn(100000))[1] atol=0.1
     end
 
     @testset "Subsequences" begin
