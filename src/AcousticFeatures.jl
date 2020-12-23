@@ -367,7 +367,7 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     # crds, _ = peakprom(Maxima(), x, distance; minprom=height)
     crds,_ = findpeaks1d(x; height=height, distance=distance)
     timeintervals = diff(crds)
-    isempty(crds) ? [zero(T), zero(T), zero(T)] : [length(crds), mean(timeintervals)/f.fs, var(timeintervals)/f.fs]
+    [convert(Float64, length(crds)), mean(timeintervals)/f.fs, var(timeintervals)/f.fs]
 end
 
 """
