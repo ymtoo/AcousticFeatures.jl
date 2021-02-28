@@ -75,10 +75,6 @@ struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
 end
 name(::FrequencyContours) = ["FrequencyContours"]
 
-"""
-In water, the common reference `ref` is 1 micropascal. In air, the
-common reference `ref` is 20 micropascal.
-"""
 struct SoundPressureLevel{T<:Real} <: AbstractAcousticFeature
     ref::T
 end
@@ -298,8 +294,11 @@ end
     score(f::SoundPressureLevel, x::AbstractVector{T})
 
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal.
+In water, the common reference `ref` is 1 micropascal. In air, the
+common reference `ref` is 20 micropascal.
 
 # Examples:
+```julia-repl
 julia> x = Score(SoundPressureLevel(), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
