@@ -300,13 +300,15 @@ end
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal.
 
 # Examples:
-julia> x = Score(SoundPressureLevel(), randn(9600))2-dimensional AxisArray{Float64,2,...} with axes:
+julia> x = Score(SoundPressureLevel(), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
     :col, ["SPL"]
 And data, a 1×1 Array{Float64,2}:
  -0.08307636105819256
 
-julia> x = Score(SoundPressureLevel(), randn(9600); winlen=960, noverlap=480)2-dimensional AxisArray{Float64,2,...} with axes:
+julia> x = Score(SoundPressureLevel(), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
     :col, ["SPL"]
 And data, a 20×1 Array{Float64,2}:
