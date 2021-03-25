@@ -147,7 +147,7 @@ t = (0:N-1)./fs
             @test all(isless.(spart2, spart1))
         end
 
-        @test name(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen)) == ["FrequencyContours"]
+        @test name(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen)) == ["Frequency Contours"]
     end
 
     @testset "SoundPressureLevel" begin
@@ -219,7 +219,7 @@ t = (0:N-1)./fs
         @test sc[2] ≈ 0.0 atol=1e-2
         @test sc[3] ≈ 0.0 atol=1e-2
 
-        @test name(Entropy(fs, 256, 128)) == ["TemporalEntropy","SpectralEntropy","EntropyIndex"]
+        @test name(Entropy(fs, 256, 128)) == ["Temporal Entropy","Spectral Entropy","Entropy Index"]
     end
 
     @testset "ZeroCrossingRate" begin
@@ -238,7 +238,7 @@ t = (0:N-1)./fs
         sc = Score(SpectralCentroid(fs), x)
         @test sc[1] ≈ 6250 atol=0.0001
 
-        @test name(SpectralCentroid(fs)) == ["SpectralCentroid"]
+        @test name(SpectralCentroid(fs)) == ["Spectral Centroid"]
     end
 
     @testset "SpectralFlatness" begin
@@ -252,7 +252,7 @@ t = (0:N-1)./fs
         scnormal = Score(SpectralFlatness(), x)
         @test scnormal[1] > sc[1]
 
-        @test name(SpectralFlatness()) == ["SpectralFlatness"]
+        @test name(SpectralFlatness()) == ["Spectral Flatness"]
     end
 
     @testset "PermutationEntropy" begin
@@ -270,7 +270,7 @@ t = (0:N-1)./fs
         @test sc2[1] ≈ 0.5887 atol=0.0001
         @test sc2[1] == sc3[1] 
 
-        @test name(PermutationEntropy(m)) == ["PermutationEntropy"]
+        @test name(PermutationEntropy(m)) == ["Permutation Entropy"]
     end
 
     @testset "Score" begin
