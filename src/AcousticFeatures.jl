@@ -73,7 +73,7 @@ struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     minfdist::T
     mintlen::T
 end
-name(::FrequencyContours) = ["FrequencyContours"]
+name(::FrequencyContours) = ["Frequency Contours"]
 
 struct SoundPressureLevel{T<:Real} <: AbstractAcousticFeature
     ref::T
@@ -99,7 +99,7 @@ struct Entropy{FT<:Real} <: AbstractAcousticFeature
     n::Int
     noverlap::Int
 end
-name(::Entropy) = ["TemporalEntropy","SpectralEntropy","EntropyIndex"]
+name(::Entropy) = ["Temporal Entropy","Spectral Entropy","Entropy Index"]
 
 struct ZeroCrossingRate <: AbstractAcousticFeature end
 name(::ZeroCrossingRate) = ["ZCR"]
@@ -107,10 +107,10 @@ name(::ZeroCrossingRate) = ["ZCR"]
 struct SpectralCentroid{FT<:Real} <: AbstractAcousticFeature
     fs::FT
 end
-name(::SpectralCentroid) = ["SpectralCentroid"]
+name(::SpectralCentroid) = ["Spectral Centroid"]
 
 struct SpectralFlatness <: AbstractAcousticFeature end
-name(::SpectralFlatness) = ["SpectralFlatness"]
+name(::SpectralFlatness) = ["Spectral Flatness"]
 
 struct PermutationEntropy <: AbstractAcousticFeature
     m::Int
@@ -118,7 +118,7 @@ struct PermutationEntropy <: AbstractAcousticFeature
     normalization::Bool
 end
 PermutationEntropy(m) = PermutationEntropy(m, 1, true)
-name(::PermutationEntropy) = ["PermutationEntropy"]
+name(::PermutationEntropy) = ["Permutation Entropy"]
 
 ################################################################################
 #
@@ -227,14 +227,14 @@ contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
 julia> x = Score(FrequencyContours(9600, 512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["FrequencyContours"]
+    :col, ["Frequency Contours"]
 And data, a 1×1 Array{Float64,2}:
  0.0038910505836575876
 
 julia> x = Score(FrequencyContours(9600, 512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600); winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["FrequencyContours"]
+    :col, ["Frequency Contours"]
 And data, a 20×1 Array{Float64,2}:
  0.0
  0.0
@@ -422,14 +422,14 @@ Assessment and Landscape Investigation, 2014.
 julia> x = Score(Entropy(9600, 96, 48), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["TemporalEntropy", "SpectralEntropy", "EntropyIndex"]
+    :col, ["Temporal Entropy", "Spectral Entropy", "Entropy Index"]
 And data, a 1×3 Array{Float64,2}:
  0.984457  0.997608  0.982103
 
 julia> x = Score(Entropy(9600, 96, 48), randn(9600); winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["TemporalEntropy", "SpectralEntropy", "EntropyIndex"]
+    :col, ["Temporal Entropy", "Spectral Entropy", "Entropy Index"]
 And data, a 20×3 Array{Float64,2}:
  0.903053  0.982299  0.887068
  0.980151  0.986018  0.966446
@@ -507,14 +507,14 @@ https://en.wikipedia.org/wiki/Spectral_centroid
 julia> x = Score(SpectralCentroid(9600), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["SpectralCentroid"]
+    :col, ["Spectral Centroid"]
 And data, a 1×1 Array{Float64,2}:
  2387.4592177121676
 
 julia> x = Score(SpectralCentroid(9600), randn(9600); winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["SpectralCentroid"]
+    :col, ["Spectral Centroid"]
 And data, a 20×1 Array{Float64,2}:
  2398.6889311658415
  2362.570125358973
@@ -546,14 +546,14 @@ https://en.wikipedia.org/wiki/Spectral_flatness
 julia> x = Score(SpectralFlatness(), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["SpectralFlatness"]
+    :col, ["Spectral Flatness"]
 And data, a 1×1 Array{Float64,2}:
  0.5598932661540399
 
 julia> x = Score(SpectralFlatness(), randn(9600); winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["SpectralFlatness"]
+    :col, ["Spectral Flatness"]
 And data, a 20×1 Array{Float64,2}:
  0.5661636483227057
  0.543740942647357
@@ -585,14 +585,14 @@ Phys. Rev. Lett., 88 (17), 2002
 julia> x = Score(PermutationEntropy(7), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["PermutationEntropy"]
+    :col, ["Permutation Entropy"]
 And data, a 1×1 Array{Float64,2}:
  0.9637270776723836
 
 julia> x = Score(PermutationEntropy(7), randn(9600), winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["PermutationEntropy"]
+    :col, ["Permutation Entropy"]
 And data, a 20×1 Array{Float64,2}:
  0.4432867336969194
  0.7896679491573086
