@@ -273,6 +273,15 @@ t = (0:N-1)./fs
         @test name(PermutationEntropy(m)) == ["Permutation Entropy"]
     end
 
+    @testset "PSD" begin
+        @info "Testing PSD"
+
+        freq = 3000
+        x = cw(freq, 0.1, 96000) |> real |> samples
+        sc = Score(PSD(64, 32, 96000), x)
+        sc.axes[2][argmax(sc)[2]] == "PSD-$(freq)Hz"
+    end
+
     @testset "Score" begin
         @info "Testing Score"
         
