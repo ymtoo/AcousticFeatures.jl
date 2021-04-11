@@ -632,7 +632,7 @@ Score of `x` based on power spectral density in dB scale.
 
 # Examples:
 ```julia-repl
-julia> x = Score(PermutationEntropy(64, 32, 96000), randn(9600))
+julia> x = Score(PSD(64, 32, 96000), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
     :col, ["PSD-0Hz", "PSD-1500Hz", "PSD-3000Hz", "PSD-4500Hz", "PSD-6000Hz", "PSD-7500Hz", "PSD-9000Hz", "PSD-10500Hz", "PSD-12000Hz", "PSD-13500Hz"  …  "PSD-34500Hz", "PSD-36000Hz", "PSD-37500Hz", "PSD-39000Hz", "PSD-40500Hz", "PSD-42000Hz", "PSD-43500Hz", "PSD-45000Hz", "PSD-46500Hz", "PSD-48000Hz"]
