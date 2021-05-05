@@ -1,6 +1,14 @@
 using AcousticFeatures
+using AcousticFeatures: name
 
-using AlphaStableDistributions, BenchmarkTools, Distributions, LazyWAVFiles, LinearAlgebra, SignalAnalysis, Test, WAV
+using AlphaStableDistributions
+using BenchmarkTools
+using Distributions
+using LazyWAVFiles
+using LinearAlgebra
+using SignalAnalysis
+using Test
+using WAV
 
 tmpdir = mktempdir()
 fs = 100_000
@@ -16,13 +24,13 @@ t = (0:N-1)./fs
         @info "Testing Energy"
 
         x = A.*sin.(2π*frequency*t)
-        @test Score(Energy(), x).s[1] ≈ (A^2)/2
+        @test Score(Energy(), x)[1] ≈ (A^2)/2
         winlens = [1_000, 10_000, 1_001, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(x, winlen, noverlap)
             sc = Score(Energy(), x; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
+            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart, repeat([(A^2)/2], length(spart)), atol=0.001))
         end
         WAV.wavwrite(x[1:N÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
@@ -31,9 +39,11 @@ t = (0:N-1)./fs
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(dfile, winlen, noverlap)
             sc = Score(Energy(), dfile; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
+            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart, repeat([(A^2)/2], length(spart)), atol=0.001))
         end
+
+        @test name(Energy()) == ["Energy"]
     end
 
     @testset "Myriad" begin
@@ -44,13 +54,13 @@ t = (0:N-1)./fs
         x = rand(AlphaStable(α=α, scale=scale), N)
         d = fit(AlphaStable, x)
         sqKscale = myriadconstant(d.α, d.scale)
-        @test Score(Myriad(), x).s[1]/N ≈ (log((d.α/(2-d.α+eps()))*(d.scale^2))) atol=0.1
+        @test Score(Myriad(), x)[1]/N ≈ (log((d.α/(2-d.α+eps()))*(d.scale^2))) atol=0.1
         winlens = [1_000, 10_000, 1_001, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(x, winlen, noverlap)
             sc = Score(Myriad(sqKscale), x; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
+            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
         end
         WAV.wavwrite(x[1:N÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
@@ -59,9 +69,11 @@ t = (0:N-1)./fs
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(dfile, winlen, noverlap)
             sc = Score(Myriad(sqKscale), dfile; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
+            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
         end
+
+        @test name(Myriad()) == ["Myriad"]
     end
 
     # @testset "VMyriad" begin
@@ -107,15 +119,15 @@ t = (0:N-1)./fs
         mintlen = 0.05
         sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x1)
         sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x2)
-        @test sc1.s[1] > sc2.s[1]
+        @test sc1[1] > sc2[1]
         winlens = [10_000, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(x1, winlen, noverlap)
             sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x1, winlen=winlen, noverlap=noverlap)
             sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x2, winlen=winlen, noverlap=noverlap)
-            spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(x1)-subseq.winlen÷2)]
-            spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(x1)-subseq.winlen÷2)]
+            spart1 = sc1[(sc1.axes[1] .> subseq.winlen÷2) .& (sc1.axes[1] .< length(x1)-subseq.winlen÷2)]
+            spart2 = sc2[(sc2.axes[1] .> subseq.winlen÷2) .& (sc2.axes[1] .< length(x1)-subseq.winlen÷2)]
             @test all(isless.(spart2, spart1))
         end
         tmpdir1 = mktempdir()
@@ -130,10 +142,12 @@ t = (0:N-1)./fs
             subseq = Subsequence(dfile1, winlen, noverlap)
             sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), dfile1, winlen=winlen, noverlap=noverlap)
             sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), dfile2, winlen=winlen, noverlap=noverlap)
-            spart1 = sc1.s[(sc1.indices .> subseq.winlen÷2) .& (sc1.indices .< length(dfile1)-subseq.winlen÷2)]
-            spart2 = sc2.s[(sc2.indices .> subseq.winlen÷2) .& (sc2.indices .< length(dfile1)-subseq.winlen÷2)]
+            spart1 = sc1[(sc1.axes[1] .> subseq.winlen÷2) .& (sc1.axes[1] .< length(dfile1)-subseq.winlen÷2)]
+            spart2 = sc2[(sc2.axes[1] .> subseq.winlen÷2) .& (sc2.axes[1] .< length(dfile1)-subseq.winlen÷2)]
             @test all(isless.(spart2, spart1))
         end
+
+        @test name(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen)) == ["Frequency Contours"]
     end
 
     @testset "SoundPressureLevel" begin
@@ -142,13 +156,13 @@ t = (0:N-1)./fs
         x = A.*sin.(2π*frequency*t)
         x = pressure(x, 0.0, 0.0)
         sc = Score(SoundPressureLevel(), x)
-        @test sc.s[1] ≈ 20*log10(1/sqrt(2))
+        @test sc[1] ≈ 20*log10(1/sqrt(2))
         winlens = [1_000, 10_000, 1_001, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(x, winlen, noverlap)
             sc = Score(SoundPressureLevel(), x; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
+            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart, repeat([20*log10(1/sqrt(2))], length(spart)), atol=0.01))
         end
         WAV.wavwrite(x[1:length(x)÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
@@ -157,9 +171,11 @@ t = (0:N-1)./fs
         for winlen in winlens, noverlap in noverlaps
             subseq = Subsequence(dfile, winlen, noverlap)
             sc = Score(SoundPressureLevel(), dfile; winlen=winlen, noverlap=noverlap)
-            spart = sc.s[(sc.indices .> subseq.winlen÷2) .& (sc.indices .< length(x)-subseq.winlen÷2)]
+            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
             @test all(isapprox.(spart, repeat([20*log10(1/sqrt(2))], length(spart)), atol=0.01))
         end
+
+        @test name(SoundPressureLevel()) == ["SPL"]
     end
 
     @testset "ImpulseStats" begin
@@ -167,16 +183,17 @@ t = (0:N-1)./fs
 
         trueindices = [101, 2254, 5322, 8888]
         x = zeros(N)
-        x[trueindices] .= 1.0
+        x[trueindices] .= 10.0
         x += 0.1 .* randn(N)
 
         sc1 = Score(ImpulseStats(fs), x)
         sc2 = Score(ImpulseStats(fs, 10, 1e-3), x)
-        @test sc1.s[1, 1] == sc2.s[1, 1] == length(trueindices)
+        @test sc1[1, 1] == sc2[1, 1] == length(trueindices)
         truetimeintervals = diff(trueindices)
-        @test sc1.s[1, 2] == sc2.s[1, 2] == mean(truetimeintervals)/fs
-        @test sc1.s[1, 3] == sc2.s[1, 3] == var(truetimeintervals)/fs
+        @test sc1[1, 2] == sc2[1, 2] == mean(truetimeintervals)/fs
+        @test sc1[1, 3] == sc2[1, 3] == var(truetimeintervals)/fs
 
+        @test name(ImpulseStats(fs)) == ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
     end
 
     @testset "SymmetricAlphaStableStats" begin
@@ -186,28 +203,32 @@ t = (0:N-1)./fs
         scale = 2.0
         d = AlphaStable(α=α, scale=scale)
         x = rand(d, N)
-        sc = Score(SymmetricAlphaStableStats(), x).s[1, :]
-        @test sc[1] ≈ α atol=0.1
-        @test sc[2] ≈ scale atol=0.1
+        sc = Score(SymmetricAlphaStableStats(), x)
+        @test sc[1,1] ≈ α atol=0.1
+        @test sc[1,2] ≈ scale atol=0.1
 
+        @test name(SymmetricAlphaStableStats()) == ["α", "scale"]
     end
 
     @testset "Entropy" begin
         @info "Testing Entropy"
 
         x = A.*sin.(2π*6250*t)
-        sc = Score(Entropy(256, 128, fs, false), x)
-        @test sc.s[1] ≈ 1.0 atol=1e-2
-        @test sc.s[2] ≈ 0.0 atol=1e-2
-        @test sc.s[3] ≈ 0.0 atol=1e-2
+        sc = Score(Entropy(fs, 256, 128), x)
+        @test sc[1] ≈ 1.0 atol=1e-2
+        @test sc[2] ≈ 0.0 atol=1e-2
+        @test sc[3] ≈ 0.0 atol=1e-2
 
+        @test name(Entropy(fs, 256, 128)) == ["Temporal Entropy","Spectral Entropy","Entropy Index"]
     end
 
     @testset "ZeroCrossingRate" begin
         @info "Testing ZeroCrossingRate"
         x = [100.0, 1.0, -2.0, 2.0, -100, 0.0, 10.0]
         sc = Score(ZeroCrossingRate(), x)
-        @test sc.s[1] == 4 / length(x)
+        @test sc[1] == 4 / length(x)
+
+        @test name(ZeroCrossingRate()) == ["ZCR"]
     end
 
     @testset "SpectralCentroid" begin
@@ -215,7 +236,9 @@ t = (0:N-1)./fs
 
         x = A.*sin.(2π*6250*t)
         sc = Score(SpectralCentroid(fs), x)
-        @test sc.s[1] ≈ 6250 atol=0.0001
+        @test sc[1] ≈ 6250 atol=0.0001
+
+        @test name(SpectralCentroid(fs)) == ["Spectral Centroid"]
     end
 
     @testset "SpectralFlatness" begin
@@ -223,21 +246,14 @@ t = (0:N-1)./fs
 
         x = A.*sin.(2π*6250*t)
         sc = Score(SpectralFlatness(), x)
-        @test sc.s[1] ≈ 0.0 atol=0.0001
+        @test sc[1] ≈ 0.0 atol=0.0001
 
         x = randn(N)
         scnormal = Score(SpectralFlatness(), x)
-        @test scnormal.s[1] > sc.s[1]
+        @test scnormal[1] > sc[1]
+
+        @test name(SpectralFlatness()) == ["Spectral Flatness"]
     end
-
-    # @testset "SumAbsAutocor" begin
-    #     @info "Testing SumAbsAutocor"
-
-    #     x = A.*sin.(2π*6250*t)
-    #     y = A.*cos.(2π*6250*t)
-    #     sc = Score(SumAbsAutocor(), x)
-    #     @test sc.s[1] / length(x) ≈ sum(abs, y) / 2 / length(x) atol=0.0001
-    # end
 
     @testset "PermutationEntropy" begin
         @info "Testing PermutationEntropy"
@@ -250,9 +266,28 @@ t = (0:N-1)./fs
         sc1 = Score(PermutationEntropy(m, τ, norm1), x)
         sc2 = Score(PermutationEntropy(m, τ, norm2), x)
         sc3 = Score(PermutationEntropy(m), x)
-        @test sc1.s[1] ≈ 1.5219 atol=0.0001
-        @test sc2.s[1] ≈ 0.5887 atol=0.0001
-        @test sc2.s[1] == sc3.s[1] 
+        @test sc1[1] ≈ 1.5219 atol=0.0001
+        @test sc2[1] ≈ 0.5887 atol=0.0001
+        @test sc2[1] == sc3[1] 
+
+        @test name(PermutationEntropy(m)) == ["Permutation Entropy"]
+    end
+
+    @testset "PSD" begin
+        @info "Testing PSD"
+
+        freq = 3000
+        x = cw(freq, 0.1, 96000) |> real |> samples
+        sc = Score(PSD(64, 32, 96000), x)
+        sc.axes[2][argmax(sc)[2]] == "PSD-$(freq)Hz"
+    end
+
+    @testset "Score" begin
+        @info "Testing Score"
+        
+        @test_throws ArgumentError Score(Energy(), randn(1000); winlen=1001)
+        f = Energy()
+        @test Score(f, randn(100000))[1] ≈ f(randn(100000))[1] atol=0.1
     end
 
     @testset "Subsequences" begin
@@ -418,6 +453,5 @@ t = (0:N-1)./fs
         t = @belapsed $subseqslf[100]
         @test t < 0.01
     end
-
 
 end
