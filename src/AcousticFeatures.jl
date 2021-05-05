@@ -26,6 +26,7 @@ export
     SpectralCentroid,
     SpectralFlatness,
     PermutationEntropy,
+    PSD,
     Score,
 
     # subsequences
@@ -73,12 +74,8 @@ struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
     minfdist::T
     mintlen::T
 end
-name(::FrequencyContours) = ["FrequencyContours"]
+name(::FrequencyContours) = ["Frequency Contours"]
 
-"""
-In water, the common reference `ref` is 1 micropascal. In air, the
-common reference `ref` is 20 micropascal.
-"""
 struct SoundPressureLevel{T<:Real} <: AbstractAcousticFeature
     ref::T
 end
@@ -103,7 +100,7 @@ struct Entropy{FT<:Real} <: AbstractAcousticFeature
     n::Int
     noverlap::Int
 end
-name(::Entropy) = ["TemporalEntropy","SpectralEntropy","EntropyIndex"]
+name(::Entropy) = ["Temporal Entropy","Spectral Entropy","Entropy Index"]
 
 struct ZeroCrossingRate <: AbstractAcousticFeature end
 name(::ZeroCrossingRate) = ["ZCR"]
@@ -111,10 +108,10 @@ name(::ZeroCrossingRate) = ["ZCR"]
 struct SpectralCentroid{FT<:Real} <: AbstractAcousticFeature
     fs::FT
 end
-name(::SpectralCentroid) = ["SpectralCentroid"]
+name(::SpectralCentroid) = ["Spectral Centroid"]
 
 struct SpectralFlatness <: AbstractAcousticFeature end
-name(::SpectralFlatness) = ["SpectralFlatness"]
+name(::SpectralFlatness) = ["Spectral Flatness"]
 
 struct PermutationEntropy <: AbstractAcousticFeature
     m::Int
@@ -122,7 +119,16 @@ struct PermutationEntropy <: AbstractAcousticFeature
     normalization::Bool
 end
 PermutationEntropy(m) = PermutationEntropy(m, 1, true)
-name(::PermutationEntropy) = ["PermutationEntropy"]
+name(::PermutationEntropy) = ["Permutation Entropy"]
+
+struct PSD{FT<:Real} <: AbstractAcousticFeature
+    n::Int
+    noverlap::Int
+    fs::FT
+end
+function name(f::PSD)
+    "PSD-" .* string.(convert.(Int, FFTW.rfftfreq(f.n, f.fs))) .* "Hz"
+end
 
 ################################################################################
 #
@@ -231,14 +237,14 @@ contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
 julia> x = Score(FrequencyContours(9600, 512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["FrequencyContours"]
+    :col, ["Frequency Contours"]
 And data, a 1×1 Array{Float64,2}:
  0.0038910505836575876
 
 julia> x = Score(FrequencyContours(9600, 512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600); winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["FrequencyContours"]
+    :col, ["Frequency Contours"]
 And data, a 20×1 Array{Float64,2}:
  0.0
  0.0
@@ -298,15 +304,20 @@ end
     score(f::SoundPressureLevel, x::AbstractVector{T})
 
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal.
+In water, the common reference `ref` is 1 micropascal. In air, the
+common reference `ref` is 20 micropascal.
 
 # Examples:
-julia> x = Score(SoundPressureLevel(), randn(9600))2-dimensional AxisArray{Float64,2,...} with axes:
+```julia-repl
+julia> x = Score(SoundPressureLevel(), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
     :col, ["SPL"]
 And data, a 1×1 Array{Float64,2}:
  -0.08307636105819256
 
-julia> x = Score(SoundPressureLevel(), randn(9600); winlen=960, noverlap=480)2-dimensional AxisArray{Float64,2,...} with axes:
+julia> x = Score(SoundPressureLevel(), randn(9600); winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
     :col, ["SPL"]
 And data, a 20×1 Array{Float64,2}:
@@ -421,14 +432,14 @@ Assessment and Landscape Investigation, 2014.
 julia> x = Score(Entropy(9600, 96, 48), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["TemporalEntropy", "SpectralEntropy", "EntropyIndex"]
+    :col, ["Temporal Entropy", "Spectral Entropy", "Entropy Index"]
 And data, a 1×3 Array{Float64,2}:
  0.984457  0.997608  0.982103
 
 julia> x = Score(Entropy(9600, 96, 48), randn(9600); winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["TemporalEntropy", "SpectralEntropy", "EntropyIndex"]
+    :col, ["Temporal Entropy", "Spectral Entropy", "Entropy Index"]
 And data, a 20×3 Array{Float64,2}:
  0.903053  0.982299  0.887068
  0.980151  0.986018  0.966446
@@ -506,14 +517,14 @@ https://en.wikipedia.org/wiki/Spectral_centroid
 julia> x = Score(SpectralCentroid(9600), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["SpectralCentroid"]
+    :col, ["Spectral Centroid"]
 And data, a 1×1 Array{Float64,2}:
  2387.4592177121676
 
 julia> x = Score(SpectralCentroid(9600), randn(9600); winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["SpectralCentroid"]
+    :col, ["Spectral Centroid"]
 And data, a 20×1 Array{Float64,2}:
  2398.6889311658415
  2362.570125358973
@@ -545,14 +556,14 @@ https://en.wikipedia.org/wiki/Spectral_flatness
 julia> x = Score(SpectralFlatness(), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["SpectralFlatness"]
+    :col, ["Spectral Flatness"]
 And data, a 1×1 Array{Float64,2}:
  0.5598932661540399
 
 julia> x = Score(SpectralFlatness(), randn(9600); winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["SpectralFlatness"]
+    :col, ["Spectral Flatness"]
 And data, a 20×1 Array{Float64,2}:
  0.5661636483227057
  0.543740942647357
@@ -584,14 +595,14 @@ Phys. Rev. Lett., 88 (17), 2002
 julia> x = Score(PermutationEntropy(7), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
-    :col, ["PermutationEntropy"]
+    :col, ["Permutation Entropy"]
 And data, a 1×1 Array{Float64,2}:
  0.9637270776723836
 
 julia> x = Score(PermutationEntropy(7), randn(9600), winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
-    :col, ["PermutationEntropy"]
+    :col, ["Permutation Entropy"]
 And data, a 20×1 Array{Float64,2}:
  0.4432867336969194
  0.7896679491573086
@@ -612,6 +623,40 @@ function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
     else
         [pe]
     end
+end
+
+"""
+    score(f::PSD, x::AbstractVector{T})
+
+Score of `x` based on power spectral density in dB scale.
+
+# Examples:
+```julia-repl
+julia> x = Score(PSD(64, 32, 96000), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["PSD-0Hz", "PSD-1500Hz", "PSD-3000Hz", "PSD-4500Hz", "PSD-6000Hz", "PSD-7500Hz", "PSD-9000Hz", "PSD-10500Hz", "PSD-12000Hz", "PSD-13500Hz"  …  "PSD-34500Hz", "PSD-36000Hz", "PSD-37500Hz", "PSD-39000Hz", "PSD-40500Hz", "PSD-42000Hz", "PSD-43500Hz", "PSD-45000Hz", "PSD-46500Hz", "PSD-48000Hz"]
+And data, a 1×33 Array{Float64,2}:
+ -49.611  -47.1275  -46.7286  -46.4742  -46.6452  …  -47.0801  -47.2065  -46.5577  -46.4154  -50.4786
+
+julia> x = Score(PSD(64, 32, 96000), randn(9600), winlen=960, noverlap=480)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:480:9121
+    :col, ["PSD-0Hz", "PSD-1500Hz", "PSD-3000Hz", "PSD-4500Hz", "PSD-6000Hz", "PSD-7500Hz", "PSD-9000Hz", "PSD-10500Hz", "PSD-12000Hz", "PSD-13500Hz"  …  "PSD-34500Hz", "PSD-36000Hz", "PSD-37500Hz", "PSD-39000Hz", "PSD-40500Hz", "PSD-42000Hz", "PSD-43500Hz", "PSD-45000Hz", "PSD-46500Hz", "PSD-48000Hz"]
+And data, a 20×33 Array{Float64,2}:
+ -54.3507  -49.2203  -47.9715  -50.4869  -51.4884  …  -48.8581  -49.8427  -50.804   -47.5865  -51.502
+ -48.4897  -45.3653  -46.2605  -47.4234  -47.4109     -46.3487  -46.3496  -48.243   -45.3489  -49.5331
+ -48.0083  -45.1101  -45.8474  -47.284   -45.2843     -46.2456  -46.5622  -47.2382  -46.6219  -47.9124
+ -49.023   -45.4548  -44.5266  -45.9787  -44.7397     -47.6285  -48.4443  -47.2613  -47.7996  -48.1423
+   ⋮                                               ⋱                        ⋮                 
+ -49.9071  -46.6817  -47.1582  -45.9655  -48.3396     -46.986   -46.8983  -45.6008  -47.0211  -48.4817
+ -49.0467  -47.1668  -46.9087  -47.0215  -47.8279     -46.8043  -47.2044  -45.6053  -47.0023  -48.222
+ -49.7118  -47.3381  -47.219   -45.3647  -45.6587     -47.3541  -47.4126  -46.1465  -46.491   -48.1833
+```
+"""
+function score(f::PSD, x::AbstractVector{T}) where T<:Real
+    p = welch_pgram(x, f.n, f.noverlap; fs=f.fs)
+    pow2db.(power(p))
 end
 
 """
