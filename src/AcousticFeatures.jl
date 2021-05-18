@@ -127,7 +127,7 @@ struct PSD{FT<:Real} <: AbstractAcousticFeature
     fs::FT
 end
 function name(f::PSD)
-    "PSD-" .* string.(convert.(Int, FFTW.rfftfreq(f.n, f.fs))) .* "Hz"
+    "PSD-" .* string.(round.(FFTW.rfftfreq(f.n, f.fs); digits=1)) .* "Hz"
 end
 
 ################################################################################
