@@ -122,9 +122,9 @@ PermutationEntropy(m) = PermutationEntropy(m, 1, true)
 name(::PermutationEntropy) = ["Permutation Entropy"]
 
 struct PSD{FT<:Real} <: AbstractAcousticFeature
+    fs::FT
     n::Int
     noverlap::Int
-    fs::FT
 end
 function name(f::PSD)
     "PSD-" .* string.(round.(FFTW.rfftfreq(f.n, f.fs); digits=1)) .* "Hz"

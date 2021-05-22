@@ -277,8 +277,9 @@ t = (0:N-1)./fs
         @info "Testing PSD"
 
         freq = 3000
-        x = cw(freq, 0.1, 96000) |> real |> samples
-        sc = Score(PSD(64, 32, 96000), x)
+        fs = 96000
+        x = cw(freq, 0.1, fs) |> real |> samples
+        sc = Score(PSD(fs, 64, 32), x)
         sc.axes[2][argmax(sc)[2]] == "PSD-$(round(freq; digits=1))Hz"
     end
 
