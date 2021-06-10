@@ -283,6 +283,20 @@ t = (0:N-1)./fs
         sc.axes[2][argmax(sc)[2]] == "PSD-$(round(freq; digits=1))Hz"
     end
 
+    @testset "AcousticComplexityIndex" begin
+        @info "Testing AcousticComplexityIndex"
+
+        freq1, freq2 = 1000, 48000
+        fs = 96000
+        x1 = chirp(freq1, freq2, 5.0, fs) |> real |> samples
+        x2 = cw(freq1, 5.0, fs) |> real |> samples
+        x1 += randn(length(x1))
+        x2 += randn(length(x2))
+        sc1 = Score(AcousticComplexityIndex(fs, 1048, 0, 30), x1)
+        sc2 = Score(AcousticComplexityIndex(fs, 1048, 0, 30), x2)
+        @test sc1[1] > sc2[1]
+    end
+
     @testset "Score" begin
         @info "Testing Score"
         

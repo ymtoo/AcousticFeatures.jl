@@ -27,6 +27,7 @@ export
     SpectralFlatness,
     PermutationEntropy,
     PSD,
+    AcousticComplexityIndex,
     Score,
 
     # subsequences
@@ -129,6 +130,14 @@ end
 function name(f::PSD)
     "PSD-" .* string.(round.(FFTW.rfftfreq(f.n, f.fs); digits=1)) .* "Hz"
 end
+
+struct AcousticComplexityIndex{FT<:Real} <: AbstractAcousticFeature
+    fs::FT
+    n::Int
+    noverlap::Int
+    jbin::Int
+end
+name(::AcousticComplexityIndex) = ["Acoustic Complexity Index"]
 
 ################################################################################
 #
@@ -632,14 +641,14 @@ Score of `x` based on power spectral density in dB scale.
 
 # Examples:
 ```julia-repl
-julia> x = Score(PSD(64, 32, 96000), randn(9600))
+julia> x = Score(PSD(96000, 64, 32), randn(9600))
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:1
     :col, ["PSD-0Hz", "PSD-1500Hz", "PSD-3000Hz", "PSD-4500Hz", "PSD-6000Hz", "PSD-7500Hz", "PSD-9000Hz", "PSD-10500Hz", "PSD-12000Hz", "PSD-13500Hz"  …  "PSD-34500Hz", "PSD-36000Hz", "PSD-37500Hz", "PSD-39000Hz", "PSD-40500Hz", "PSD-42000Hz", "PSD-43500Hz", "PSD-45000Hz", "PSD-46500Hz", "PSD-48000Hz"]
 And data, a 1×33 Array{Float64,2}:
  -49.611  -47.1275  -46.7286  -46.4742  -46.6452  …  -47.0801  -47.2065  -46.5577  -46.4154  -50.4786
 
-julia> x = Score(PSD(64, 32, 96000), randn(9600), winlen=960, noverlap=480)
+julia> x = Score(PSD(96000, 64, 32), randn(9600), winlen=960, noverlap=480)
 2-dimensional AxisArray{Float64,2,...} with axes:
     :row, 1:480:9121
     :col, ["PSD-0Hz", "PSD-1500Hz", "PSD-3000Hz", "PSD-4500Hz", "PSD-6000Hz", "PSD-7500Hz", "PSD-9000Hz", "PSD-10500Hz", "PSD-12000Hz", "PSD-13500Hz"  …  "PSD-34500Hz", "PSD-36000Hz", "PSD-37500Hz", "PSD-39000Hz", "PSD-40500Hz", "PSD-42000Hz", "PSD-43500Hz", "PSD-45000Hz", "PSD-46500Hz", "PSD-48000Hz"]
@@ -657,6 +666,49 @@ And data, a 20×33 Array{Float64,2}:
 function score(f::PSD, x::AbstractVector{T}) where T<:Real
     p = welch_pgram(x, f.n, f.noverlap; fs=f.fs)
     pow2db.(power(p))
+end
+
+"""
+    score(f::AcousticComplexityIndex, x::AbstractVector{T})
+
+Score of `x` based on Acoustic Complexity Index. `jbin` is the temporal size of a sub-spectrogram. 
+
+# Reference:
+N. Pieretti, A. Farina, D. Morri, "A new methodology to infer the singing activity of an avian community: The Acoustic Complexity Index (ACI)", 2011.
+
+# Examples:
+```julia-repl
+julia> x = Score(AcousticComplexityIndex(96000, 1024, 0, 30), randn(960000))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:1
+    :col, ["Acoustic Complexity Index"]
+And data, a 1×1 Matrix{Float64}:
+ 15394.052148047322
+
+julia> x = Score(AcousticComplexityIndex(96000, 1024, 0, 30), randn(960000), winlen=96000, noverlap=48000)
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, 1:48000:912001
+    :col, ["Acoustic Complexity Index"]
+And data, a 20×1 Matrix{Float64}:
+ 998.0694761443425
+ 1493.1632775077805
+    ⋮
+ 1496.4075980628913
+ 1486.5057244355821
+```
+"""
+function score(f::AcousticComplexityIndex, x::AbstractVector{T}) where T<:Real
+    sp = spectrogram(x, f.n, f.noverlap; fs=f.fs).power
+    m, n = size(sp)
+    starts = range(1, n-f.jbin+1; step=f.jbin)
+    nstarts = length(starts)
+    acitmp = Matrix{T}(undef, m, nstarts)
+    for i ∈ 1:nstarts
+        subsp = sp[:,starts[i]:starts[i]+f.jbin-1]
+        D = sum(abs.(diff(subsp; dims=2)); dims=2)
+        acitmp[:,i] = D ./ (sum(subsp; dims=2) .+ eps(T))
+    end
+    [sum(acitmp)]
 end
 
 """
