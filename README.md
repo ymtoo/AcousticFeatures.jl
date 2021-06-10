@@ -17,7 +17,7 @@ The acoustic features are:
 - [Spectral Centroid](https://en.wikipedia.org/wiki/Spectral_centroid)
 - [Spectral Flatness](https://en.wikipedia.org/wiki/Spectral_flatness)
 - [Permutation Entropy](http://materias.df.uba.ar/mta2019v/files/2019/06/permutation_entropy1.pdf)
-- [PSD]
+- [PSD](https://en.wikipedia.org/wiki/Spectral_density)
 - [Acoustic Complexity Index](https://www.sciencedirect.com/science/article/abs/pii/S1470160X10002037)
 
 ## Installation
