@@ -93,23 +93,23 @@ function ordinalpatterns(x::AbstractVector{T}, m::Integer, τ::Integer=1) where 
     n = length(x) - τ*m + 1
     ps = Vector{Int}[]
     counts = Int[]
-    for t in 1:n
+    @inbounds for t in 1:n
         s = @view x[t:τ:t+τ*(m-1)]
         p = sortperm(s)
 #        v = [p == ptmp for ptmp in ps]
-        cntindex = 0
+        cntindex = nothing
         for (i, ptmp) in enumerate(ps)
             if p == ptmp
                 cntindex = i
                 break
             end
         end
-        if cntindex != 0 #any(v)
+        if cntindex !== nothing #any(v)
             counts[cntindex] += 1
         else
             push!(ps, p)
             push!(counts, 1)
         end
     end
-    counts / sum(counts) 
+    counts ./ sum(counts) 
 end
