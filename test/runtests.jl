@@ -438,6 +438,13 @@ t = (0:N-1)./fs
         p1 = pressure(xvolt, sensitivity, gain)
         p2 = pressure(xbit, sensitivity, gain, voltparams=(nbits, vref))
         @test p1 == p2
+
+        p = [1,2,3,4,5,6,7]
+        @test AcousticFeatures.ordinalpatterns(p,3,1) == [1.0]
+        @test AcousticFeatures.ordinalpatterns(p,3,2) == [1.0]
+        p = [1,2,1,2,1,2,1]
+        @test AcousticFeatures.ordinalpatterns(p,3,1) == [0.6,0.4]
+        @test AcousticFeatures.ordinalpatterns(p,3,2) == [1.0]
     end
 
     @testset "Benchmarks" begin

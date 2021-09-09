@@ -95,7 +95,7 @@ function ordinalpatterns(x::AbstractVector{T}, m::Integer, τ::Integer=1) where 
     counts = Int[]
     for t in 1:n
         s = @view x[t:τ:t+τ*(m-1)]
-        p = sortperm(sortperm(s))
+        p = sortperm(s)
 #        v = [p == ptmp for ptmp in ps]
         cntindex = 0
         for (i, ptmp) in enumerate(ps)
