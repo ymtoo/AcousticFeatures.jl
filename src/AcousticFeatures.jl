@@ -732,29 +732,31 @@ for more information, refer to `ImageFiltering.jl`. The signal is subject to pre
 """
 function Score(f::AbstractAcousticFeature,
                x::AbstractVector{T};
-               winlen::Int=length(x),
-               noverlap::Int=0,
-               padtype::Symbol=:fillzeros,
-               subseqtype::DataType=Float64,
-               preprocess::Function=identity,
-               map::Function=map,
-               showprogress::Bool=false) where {T<:Real}
+               winlen::Int = length(x),
+               noverlap::Int = 0,
+               padtype::Symbol = :fillzeros,
+               subseqtype::DataType = Float64,
+               preprocess::Function = identity,
+               map::Function = map,
+               showprogress::Bool = false) where {T<:Real}
+    (noverlap < 0) && (return throw(ArgumentError("`noverlap` must be larger or equal to zero.")))
     xlen = length(x)
     if winlen < xlen
-        (noverlap < 0) && throw(ArgumentError("`noverlap` must be larger or equal to zero."))
-        subseqs = Subsequence(x, winlen, noverlap; padtype=padtype)
+        subseq = Subsequence(x, winlen, noverlap; padtype=padtype)
+        if showprogress
+            s = (@showprogress map(x -> score(f, preprocess(convert.(subseqtype, x))), subseq))
+        else
+            s = map(x -> score(f, preprocess(convert.(subseqtype, x))), subseq)
+        end
+        return AxisArray(vcat(reshape.(s, 1, :)...)::Matrix{subseqtype}; 
+                         row=collect(1:step(subseq):xlen), 
+                         col=name(f))
     elseif winlen == xlen
         stmp = score(f, preprocess(convert.(subseqtype, x)))
-        return AxisArray(reshape([stmp...], (1, length(stmp))); row=1:1, col=name(f))
+        return AxisArray(reshape(stmp, (1, length(stmp))); row=ones(Int,1), col=name(f))
     else
-        throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
+        return throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     end
-    if showprogress
-        s = @showprogress map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
-    else
-        s = map(x -> score(f, preprocess(convert.(subseqtype, x))), subseqs)
-    end
-    AxisArray(mapreduce(transpose, vcat, s); row=1:subseqs.step:xlen, col=name(f))
 end
 
 (f::AbstractAcousticFeature)(x; kwargs...) = Score(f, x; kwargs...)

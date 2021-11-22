@@ -1,5 +1,5 @@
-struct Subsequence{VT<:AbstractVector}
-    c::VT
+struct Subsequence{C<:AbstractArray}
+    c::C
 #    fillvalue::T
     winlen::Int
     noverlap::Int
@@ -60,5 +60,5 @@ function Base.iterate(subseq::Subsequence, state=1)
 end
 
 Base.length(subseq::Subsequence) = ceil(Int64, length(subseq.c.inner)/subseq.step)
-
 Base.getindex(subseq::Subsequence, i::Number) = iterate(subseq, (1:subseq.step:length(subseq.c.inner))[i])[1]
+Base.step(subseq::Subsequence) = subseq.step

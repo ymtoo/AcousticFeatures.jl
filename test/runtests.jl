@@ -280,7 +280,7 @@ t = (0:N-1)./fs
         fs = 96000
         x = cw(freq, 0.1, fs) |> real |> samples
         sc = Score(PSD(fs, 64, 32), x)
-        sc.axes[2][argmax(sc)[2]] == "PSD-$(round(freq; digits=1))Hz"
+        @test sc.axes[2][argmax(sc)[2]] == "PSD-$(round(freq; digits=1))Hz"
     end
 
     @testset "AcousticComplexityIndex" begin
@@ -317,94 +317,93 @@ t = (0:N-1)./fs
 
         winlen = 3
         noverlap = 1
-        subseqs1 = [[0, 1, 2],
+        subseq1 = [[0, 1, 2],
                     [2, 3, 4],
                     [4, 5, 6],
                     [6, 7, 0]]
-        subseqs2 = Subsequence(x, winlen, noverlap)
-        subseqs3 = Subsequence(dfile, winlen, noverlap)
-        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
-            @test subseq1 == subseq2 == subseq3
-            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+        subseq2 = Subsequence(x, winlen, noverlap)
+        subseq3 = Subsequence(dfile, winlen, noverlap)
+        @test length(subseq1) == length(subseq2) == length(subseq3)
+        for (s1, s2, s3) in zip(subseq1, subseq2, subseq3)
+            @test s1 == s2 == s3
         end
 
         winlen = 3
         noverlap = 0
-        subseqs1 = [[0, 1, 2],
+        subseq1 = [[0, 1, 2],
         [3, 4, 5],
         [6, 7, 0]]
-        subseqs2 = Subsequence(x, winlen, noverlap)
-        subseqs3 = Subsequence(dfile, winlen, noverlap)
-        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+        subseq2 = Subsequence(x, winlen, noverlap)
+        subseq3 = Subsequence(dfile, winlen, noverlap)
+        @test length(subseq1) == length(subseq2) == length(subseq3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
             @test subseq1 == subseq2 == subseq3
-            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+            @test subseq1[i] == subseq2[i] == subseq3[i]
         end
 
         winlen = 4
         noverlap = 1
-        subseqs1 = [[0, 1, 2, 3],
+        subseq1 = [[0, 1, 2, 3],
                     [3, 4, 5, 6],
                     [6, 7, 0, 0]]
-        subseqs2 = Subsequence(x, winlen, noverlap)
-        subseqs3 = Subsequence(dfile, winlen, noverlap)
-        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+        subseq2 = Subsequence(x, winlen, noverlap)
+        subseq3 = Subsequence(dfile, winlen, noverlap)
+        @test length(subseq1) == length(subseq2) == length(subseq3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
             @test subseq1 == subseq2 == subseq3
-            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+            @test subseq1[i] == subseq2[i] == subseq3[i]
         end
 
         winlen = 4
         noverlap = 1
-        subseqs1 = [[1, 1, 2, 3],
+        subseq1 = [[1, 1, 2, 3],
                     [3, 4, 5, 6],
                     [6, 7, 7, 7]]
-        subseqs2 = Subsequence(x, winlen, noverlap; padtype=:replicate)
-        subseqs3 = Subsequence(dfile, winlen, noverlap; padtype=:replicate)
-        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+        subseq2 = Subsequence(x, winlen, noverlap; padtype=:replicate)
+        subseq3 = Subsequence(dfile, winlen, noverlap; padtype=:replicate)
+        @test length(subseq1) == length(subseq2) == length(subseq3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
             @test subseq1 == subseq2 == subseq3
-            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+            @test subseq1[i] == subseq2[i] == subseq3[i]
         end
 
         winlen = 4
         noverlap = 1
-        subseqs1 = [[7, 1, 2, 3],
+        subseq1 = [[7, 1, 2, 3],
                     [3, 4, 5, 6],
                     [6, 7, 1, 2]]
-        subseqs2 = Subsequence(x, winlen, noverlap; padtype=:circular)
-        subseqs3 = Subsequence(dfile, winlen, noverlap; padtype=:circular)
-        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+        subseq2 = Subsequence(x, winlen, noverlap; padtype=:circular)
+        subseq3 = Subsequence(dfile, winlen, noverlap; padtype=:circular)
+        @test length(subseq1) == length(subseq2) == length(subseq3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
             @test subseq1 == subseq2 == subseq3
-            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+            @test subseq1[i] == subseq2[i] == subseq3[i]
         end
 
         winlen = 4
         noverlap = 1
-        subseqs1 = [[1, 1, 2, 3],
+        subseq1 = [[1, 1, 2, 3],
                     [3, 4, 5, 6],
                     [6, 7, 7, 6]]
-        subseqs2 = Subsequence(x, winlen, noverlap; padtype=:symmetric)
-        subseqs3 = Subsequence(dfile, winlen, noverlap; padtype=:symmetric)
-        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+        subseq2 = Subsequence(x, winlen, noverlap; padtype=:symmetric)
+        subseq3 = Subsequence(dfile, winlen, noverlap; padtype=:symmetric)
+        @test length(subseq1) == length(subseq2) == length(subseq3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
             @test subseq1 == subseq2 == subseq3
-            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+            @test subseq1[i] == subseq2[i] == subseq3[i]
         end
 
         winlen = 4
         noverlap = 1
-        subseqs1 = [[2, 1, 2, 3],
+        subseq1 = [[2, 1, 2, 3],
                     [3, 4, 5, 6],
                     [6, 7, 6, 5]]
-        subseqs2 = Subsequence(x, winlen, noverlap; padtype=:reflect)
-        subseqs3 = Subsequence(dfile, winlen, noverlap; padtype=:reflect)
-        @test length(subseqs1) == length(subseqs2) == length(subseqs3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseqs1, subseqs2, subseqs3))
+        subseq2 = Subsequence(x, winlen, noverlap; padtype=:reflect)
+        subseq3 = Subsequence(dfile, winlen, noverlap; padtype=:reflect)
+        @test length(subseq1) == length(subseq2) == length(subseq3)
+        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
             @test subseq1 == subseq2 == subseq3
-            @test subseqs1[i] == subseqs2[i] == subseqs3[i]
+            @test subseq1[i] == subseq2[i] == subseq3[i]
         end
 
     end
@@ -455,24 +454,24 @@ t = (0:N-1)./fs
         wavwrite(y, joinpath(path, "test1.wav"), Fs=48000)
 
         dfile = DistributedWAVFile(path)
-        subseqsdf = Subsequence(dfile, 96000, 0)
+        subseqdf = Subsequence(dfile, 96000, 0)
 
-        t = @belapsed $subseqsdf[1]
+        t = @belapsed $subseqdf[1]
         @test t < 0.1
-        t = @belapsed $subseqsdf[10]
+        t = @belapsed $subseqdf[10]
         @test t < 0.1
-        t = @belapsed $subseqsdf[100]
+        t = @belapsed $subseqdf[100]
         @test t < 0.1
 
         filepath = joinpath(path, "test1.wav")
         lfile = LazyWAVFile(filepath)
-        subseqslf = Subsequence(lfile, 96000, 0)
+        subseqlf = Subsequence(lfile, 96000, 0)
 
-        t = @belapsed $subseqslf[1]
+        t = @belapsed $subseqlf[1]
         @test t < 0.01
-        t = @belapsed $subseqslf[10]
+        t = @belapsed $subseqlf[10]
         @test t < 0.01
-        t = @belapsed $subseqslf[100]
+        t = @belapsed $subseqlf[100]
         @test t < 0.01
     end
 
