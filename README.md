@@ -28,11 +28,14 @@ using Pkg; pkg"add https://github.com/ymtoo/AcousticFeatures.jl.git"
 ## Usage
 ```julia
 using AcousticFeatures, SignalAnalysis, Plots
+
 N  = 100_000
 fs = 100_000
 v  = randn(Float64, 3*N)
 s  = real(chirp(10_000, 30_000, 1.0, fs))
-x  = copy(v); x[N:2*N-1] += s
+x  = copy(v); 
+x[N:2*N-1] += s
+
 plot((1:3*N) / fs, x,
     xlabel = "Time (sec)",
     ylabel = "Pressure (uncalibrated)",
@@ -43,35 +46,39 @@ plot((1:3*N) / fs, x,
 ```
 ![window](timeseries.png)
 ```julia
-n = 512; nv=256; tnorm = 1.0; fd=1000.0; minhprc = 99.0; 
-minfdist = 1000.0; mintlen = 0.05; winlen = 10_000; noverlap = 5_000
+winlen = 10_000
+noverlap = 5_000
 sc1 = Score(
-    FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen),
-    v,
+    PermutationEntropy(7),
+    v;
     winlen = winlen,
     noverlap = noverlap,
+    padtype = :reflect
 )
 sc2 = Score(
-    FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen),
-    x,
+    PermutationEntropy(7),
+    x;
     winlen = winlen,
     noverlap = noverlap,
+    padtype = :reflect
 )
 plot(sc1.axes[1] ./ fs, sc1.data,
      xlabel = "Time (sec)",
-     ylabel = "Frequency Contours",
+     ylabel = "Permutation Entropy",
      label  = "without chirp",
      color  = :blue,
      dpi    = 150,
-     thickness_scaling = 1.5,
+     thickness_scaling = 1.0,
+     legend=:bottomleft
 )
 plot!(sc2.axes[1] ./ fs, sc2.data,
       xlabel = "Time (sec)",
-      ylabel = "Frequency Contours",
+      ylabel = "Permutation Entropy",
       label  = "with chirp",
       color  = :red,
       dpi    = 150,
-      thickness_scaling = 1.5,
+      thickness_scaling = 1.0,
+      legend=:bottomleft
 )
 ```
-![window](frequencycontours.png)
+![window](permutationentropy.png)
