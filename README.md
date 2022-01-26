@@ -27,58 +27,94 @@ using Pkg; pkg"add https://github.com/ymtoo/AcousticFeatures.jl.git"
 
 ## Usage
 ```julia
-using AcousticFeatures, SignalAnalysis, Plots
+using AcousticFeatures, DSP, SignalAnalysis, Plots
 
-N  = 100_000
-fs = 100_000
+function compare(sc1, sc2)
+    plot(sc1.axes[1] ./ fs, sc1.data,
+         xlabel = "Time (sec)",
+         ylabel = "Permutation Entropy",
+         label  = "without chirp",
+         color  = :blue,
+         dpi    = 150,
+         thickness_scaling = 1.0,
+         legend=:bottomleft
+    )
+    plot!(sc2.axes[1] ./ fs, sc2.data,
+          xlabel = "Time (sec)",
+          ylabel = "Permutation Entropy",
+          label  = "with chirp",
+          color  = :red,
+          dpi    = 150,
+          thickness_scaling = 1.0,
+          legend=:bottomleft
+    )
+end
+
+N  = 2400
+fs = 2400
 v  = randn(Float64, 3*N)
-s  = real(chirp(10_000, 30_000, 1.0, fs))
+s  = real(chirp(500, 1000, 1.0, fs))
 x  = copy(v); 
 x[N:2*N-1] += s
 
-plot((1:3*N) / fs, x,
-    xlabel = "Time (sec)",
-    ylabel = "Pressure (uncalibrated)",
-    legend = false,
-    dpi    = 150,
-    thickness_scaling = 1.5,
-)
+specgram(signal(x,fs); fs=fs,nfft=128)
 ```
-![window](timeseries.png)
+![window](chirp1-spec.png)
 ```julia
-winlen = 10_000
-noverlap = 5_000
+winlen = 2400
+noverlap = 1800
+pe = PermutationEntropy(5, 1, true, true)
 sc1 = Score(
-    PermutationEntropy(7),
+    pe,
     v;
     winlen = winlen,
     noverlap = noverlap,
     padtype = :reflect
 )
 sc2 = Score(
-    PermutationEntropy(7),
+    pe,
     x;
     winlen = winlen,
     noverlap = noverlap,
     padtype = :reflect
 )
-plot(sc1.axes[1] ./ fs, sc1.data,
-     xlabel = "Time (sec)",
-     ylabel = "Permutation Entropy",
-     label  = "without chirp",
-     color  = :blue,
-     dpi    = 150,
-     thickness_scaling = 1.0,
-     legend=:bottomleft
-)
-plot!(sc2.axes[1] ./ fs, sc2.data,
-      xlabel = "Time (sec)",
-      ylabel = "Permutation Entropy",
-      label  = "with chirp",
-      color  = :red,
-      dpi    = 150,
-      thickness_scaling = 1.0,
-      legend=:bottomleft
-)
+compare(sc1, sc2)
 ```
-![window](permutationentropy.png)
+![window](chirp1-permutationentropy.png)
+```julia
+N  = 2400
+fs = 2400
+v  = randn(Float64, 3*N)
+Ns = fs ÷ 100
+bpf = fir(13, 500, 1000; fs=fs) 
+s  = 10 .* filtfilt(bpf, randn(Float64, Ns)) #real(chirp(500, 1100, 0.1, fs))
+x  = copy(v); 
+Ngap = fs ÷ 10
+x[N:N+Ns-1] += s
+x[N+5Ngap:N+5Ngap+Ns-1] += s
+x[N+9Ngap:N+9Ngap+Ns-1] += s
+
+specgram(signal(x,fs); nfft=128, fs=fs)
+```
+![window](chirp3-spec.png)
+```julia
+winlen = 2400
+noverlap = 1800
+pe = PermutationEntropy(5, 1, true, true)
+sc1 = Score(
+    pe,
+    v;
+    winlen = winlen,
+    noverlap = noverlap,
+    padtype = :reflect
+)
+sc2 = Score(
+    pe,
+    x;
+    winlen = winlen,
+    noverlap = noverlap,
+    padtype = :reflect
+)
+compare(sc1, sc2)
+```
+![window](chirp3-permutationentropy.png)
