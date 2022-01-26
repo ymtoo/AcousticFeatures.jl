@@ -90,7 +90,7 @@ end
 Compute ordinal patterns of a real signal `x`.
 """
 function ordinalpatterns(x::AbstractVector{T}, m::Integer, τ::Integer=1) where T<:Real
-    n = length(x) - τ*m + 1
+    n = length(x) - τ*m + τ  
     ps = Vector{Int}[]
     counts = Int[]
     @inbounds for t in 1:n

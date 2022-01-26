@@ -120,6 +120,7 @@ struct PermutationEntropy <: AbstractAcousticFeature
     normalization::Bool
 end
 PermutationEntropy(m) = PermutationEntropy(m, 1, true)
+PermutationEntropy(m, τ) = PermutationEntropy(m, τ, true)
 name(::PermutationEntropy) = ["Permutation Entropy"]
 
 struct PSD{FT<:Real} <: AbstractAcousticFeature

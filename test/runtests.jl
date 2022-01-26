@@ -260,15 +260,24 @@ t = (0:N-1)./fs
 
         x = [4,7,9,10,6,11,3]
         m = 3
-        τ = 1
+        τ1 = 1
+        τ2 = 2
         norm1 = false
         norm2 = true
-        sc1 = Score(PermutationEntropy(m, τ, norm1), x)
-        sc2 = Score(PermutationEntropy(m, τ, norm2), x)
-        sc3 = Score(PermutationEntropy(m), x)
-        @test sc1[1] ≈ 1.5219 atol=0.0001
-        @test sc2[1] ≈ 0.5887 atol=0.0001
-        @test sc2[1] == sc3[1] 
+
+        sc11 = Score(PermutationEntropy(m, τ1, norm1), x)
+        sc12 = Score(PermutationEntropy(m, τ1, norm2), x)
+        sc13 = Score(PermutationEntropy(m), x)
+        @test sc11[1] ≈ 1.5219 atol=0.0001
+        @test sc12[1] ≈ 0.5887 atol=0.0001
+        @test sc12[1] == sc13[1] 
+
+        sc21 = Score(PermutationEntropy(m, τ2, norm1), x)
+        sc22 = Score(PermutationEntropy(m, τ2, norm2), x)
+        sc23 = Score(PermutationEntropy(m, τ2), x)
+        @test sc21[1] ≈ 1.5850 atol=0.0001
+        @test sc22[1] ≈ 0.6131 atol=0.0001
+        @test sc22[1] == sc23[1] 
 
         @test name(PermutationEntropy(m)) == ["Permutation Entropy"]
     end
