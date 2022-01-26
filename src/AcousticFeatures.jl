@@ -118,9 +118,10 @@ struct PermutationEntropy <: AbstractAcousticFeature
     m::Int
     τ::Int
     normalization::Bool
+    weighted::Bool
 end
-PermutationEntropy(m) = PermutationEntropy(m, 1, true)
-PermutationEntropy(m, τ) = PermutationEntropy(m, τ, true)
+PermutationEntropy(m) = PermutationEntropy(m, 1, true, false)
+PermutationEntropy(m, τ) = PermutationEntropy(m, τ, true, false)
 name(::PermutationEntropy) = ["Permutation Entropy"]
 
 struct PSD{FT<:Real} <: AbstractAcousticFeature
@@ -597,8 +598,12 @@ end
 Score of `x` based on permutation entropy.
 
 # Reference:
-C. Bandt, B. Pompe, "Permutation entropy: a natural complexity measure for time series",
+- C. Bandt, B. Pompe, "Permutation entropy: a natural complexity measure for time series",
 Phys. Rev. Lett., 88 (17), 2002
+
+- B. Fadlallah, B. Chen, A. Keil, and J. Príncipe, “Weighted-permutation entropy: a complexity 
+measure for time series incorporating amplitude information,” Physical Review E: Statistical, 
+Nonlinear, and Soft Matter Physics, vol. 87, no. 2, Article ID 022911, 2013. 
 
 # Examples:
 ```julia-repl
@@ -626,7 +631,7 @@ And data, a 20×1 Array{Float64,2}:
 ```
 """
 function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
-    p = ordinalpatterns(x, f.m, f.τ)
+    p = ordinalpatterns(x, f.m, f.τ, f.weighted)
     pe = -sum(p .* log2.(p))
     if f.normalization
         [pe / convert(eltype(pe), log2(factorial(big(f.m))))]

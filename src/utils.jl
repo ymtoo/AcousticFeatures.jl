@@ -89,10 +89,13 @@ end
 """
 Compute ordinal patterns of a real signal `x`.
 """
-function ordinalpatterns(x::AbstractVector{T}, m::Integer, τ::Integer=1) where T<:Real
+function ordinalpatterns(x::AbstractVector{T}, 
+                         m::Integer, 
+                         τ::Integer=1, 
+                         weighted::Bool=false) where T<:Real
     n = length(x) - τ*m + τ  
     ps = Vector{Int}[]
-    counts = Int[]
+    counts = Float64[]
     @inbounds for t in 1:n
         s = @view x[t:τ:t+τ*(m-1)]
         p = sortperm(s)
@@ -104,11 +107,12 @@ function ordinalpatterns(x::AbstractVector{T}, m::Integer, τ::Integer=1) where 
                 break
             end
         end
+        count = weighted ? var(s) : 1.0
         if cntindex !== nothing #any(v)
-            counts[cntindex] += 1
+            counts[cntindex] += count
         else
             push!(ps, p)
-            push!(counts, 1)
+            push!(counts, count)
         end
     end
     counts ./ sum(counts) 

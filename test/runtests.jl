@@ -264,20 +264,32 @@ t = (0:N-1)./fs
         τ2 = 2
         norm1 = false
         norm2 = true
+        weighted1 = false
+        weighted2 = true
 
-        sc11 = Score(PermutationEntropy(m, τ1, norm1), x)
-        sc12 = Score(PermutationEntropy(m, τ1, norm2), x)
-        sc13 = Score(PermutationEntropy(m), x)
-        @test sc11[1] ≈ 1.5219 atol=0.0001
-        @test sc12[1] ≈ 0.5887 atol=0.0001
-        @test sc12[1] == sc13[1] 
+        sc111 = Score(PermutationEntropy(m, τ1, norm1, weighted1), x)
+        sc121 = Score(PermutationEntropy(m, τ1, norm2, weighted1), x)
+        sc131 = Score(PermutationEntropy(m), x)
+        @test sc111[1] ≈ 1.5219 atol=0.0001
+        @test sc121[1] ≈ 0.5887 atol=0.0001
+        @test sc121[1] == sc131[1] 
 
-        sc21 = Score(PermutationEntropy(m, τ2, norm1), x)
-        sc22 = Score(PermutationEntropy(m, τ2, norm2), x)
-        sc23 = Score(PermutationEntropy(m, τ2), x)
-        @test sc21[1] ≈ 1.5850 atol=0.0001
-        @test sc22[1] ≈ 0.6131 atol=0.0001
-        @test sc22[1] == sc23[1] 
+        sc211 = Score(PermutationEntropy(m, τ2, norm1, weighted1), x)
+        sc221 = Score(PermutationEntropy(m, τ2, norm2, weighted1), x)
+        sc231 = Score(PermutationEntropy(m, τ2), x)
+        @test sc211[1] ≈ 1.5850 atol=0.0001
+        @test sc221[1] ≈ 0.6131 atol=0.0001
+        @test sc221[1] == sc231[1] 
+
+        sc112 = Score(PermutationEntropy(m, τ1, norm1, weighted2), x)
+        sc122 = Score(PermutationEntropy(m, τ1, norm2, weighted2), x)
+        @test sc112[1] ≈ 1.4140 atol=0.0001
+        @test sc122[1] ≈ 0.5470 atol=0.0001
+
+        sc212 = Score(PermutationEntropy(m, τ2, norm1, weighted2), x)
+        sc222 = Score(PermutationEntropy(m, τ2, norm2, weighted2), x)
+        @test sc212[1] ≈ 1.5233 atol=0.0001
+        @test sc222[1] ≈ 0.5893 atol=0.0001
 
         @test name(PermutationEntropy(m)) == ["Permutation Entropy"]
     end
