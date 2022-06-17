@@ -117,3 +117,15 @@ function ordinalpatterns(x::AbstractVector{T},
     end
     counts ./ sum(counts) 
 end
+
+function normcrosscorr(x::AbstractVector{T}, template::AbstractVector{T}) where {T}
+    s = zero(x)
+    numsamples = length(x)
+    m = length(template)
+    lpadlen, rpadlen = getpadlen(m)
+    xpad = BorderArray(x, Fill(zero(T), (lpadlen,), (rpadlen,)))
+    for i ∈ 1:numsamples
+        @views s[i] = cor(xpad[i-lpadlen:i+rpadlen], template)
+    end
+    s
+end

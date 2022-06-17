@@ -83,14 +83,23 @@ end
 SoundPressureLevel() = SoundPressureLevel(1.0)
 name(::SoundPressureLevel) = ["SPL"]
 
-struct ImpulseStats{FT<:Real,T<:Real} <: AbstractAcousticFeature
+struct ImpulseStats{FT<:Real,T<:Real,TT} <: AbstractAcousticFeature
     fs::FT
     k::Int
     tdist::T
     computeenvelope::Bool
+    template::TT
 end
-ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3, true)
-ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true)
+ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3, true, nothing)
+ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true, nothing)
+function ImpulseStats(fs, k, tdist, computeenvelope, template)
+    if computeenvelope && !isnothing(template)
+        env = envelope(template)
+        ImpulseStats{typeof(fs),typeof{tdist},typeof(env)}(fs, k, tdist, computeenvelope, env)
+    else
+        ImpulseStats{typeof(fs),typeof{tdist},Nothing}(fs, k, tdist, computeenvelope, template)
+    end
+end
 name(::ImpulseStats) = ["Nᵢ", "μᵢᵢ", "varᵢᵢ"] 
 
 struct SymmetricAlphaStableStats <: AbstractAcousticFeature end
@@ -382,6 +391,9 @@ And data, a 20×3 Array{Float64,2}:
 function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     if f.computeenvelope
         x = envelope(x)
+    end
+    if !isnothing(f.template)
+        x = normcrosscorr(x, f.template)
     end
     center = Statistics.median(x)
     height = center+f.k*mad(x, center=center, normalize=true)

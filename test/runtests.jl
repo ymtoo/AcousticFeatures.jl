@@ -181,17 +181,36 @@ t = (0:N-1)./fs
     @testset "ImpulseStats" begin
         @info "Testing ImpulseStats"
 
-        trueindices = [101, 2254, 5322, 8888]
+        trueindices = [201, 2254, 5322, 8888]
+        truetimeintervals = diff(trueindices)
+        Nᵢ = length(trueindices)
+        μᵢᵢ = mean(truetimeintervals)/fs
+        varᵢᵢ = var(truetimeintervals)/fs
         x = zeros(N)
         x[trueindices] .= 10.0
         x += 0.1 .* randn(N)
 
         sc1 = Score(ImpulseStats(fs), x)
         sc2 = Score(ImpulseStats(fs, 10, 1e-3), x)
-        @test sc1[1, 1] == sc2[1, 1] == length(trueindices)
-        truetimeintervals = diff(trueindices)
-        @test sc1[1, 2] == sc2[1, 2] == mean(truetimeintervals)/fs
-        @test sc1[1, 3] == sc2[1, 3] == var(truetimeintervals)/fs
+        @test sc1[1, 1] == sc2[1, 1] == Nᵢ
+        @test sc1[1, 2] == sc2[1, 2] == μᵢᵢ
+        @test sc1[1, 3] == sc2[1, 3] == varᵢᵢ
+
+        
+        m = 100
+        lpadlen, rpadlen = AcousticFeatures.getpadlen(m)
+        x = zeros(N)
+        template = randn(m)
+        for trueindex ∈ trueindices
+            x[trueindex-lpadlen:trueindex+rpadlen] = template
+        end
+        x += 0.1 .* randn(N)
+        impulsestats = ImpulseStats(fs, 5, 1e-3, false, template)
+        @test impulsestats.template == template
+        sc3 = Score(impulsestats, x)
+        @test sc3[1, 1] == Nᵢ
+        @test sc3[1, 2] == μᵢᵢ
+        @test sc3[1, 3] == varᵢᵢ
 
         @test name(ImpulseStats(fs)) == ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
     end
@@ -465,6 +484,17 @@ t = (0:N-1)./fs
         p = [1,2,1,2,1,2,1]
         @test AcousticFeatures.ordinalpatterns(p,3,1) == [0.6,0.4]
         @test AcousticFeatures.ordinalpatterns(p,3,2) == [1.0]
+
+        n = 1000
+        m = 10
+        index = rand(1:n-m)
+        lpadlen, rpadlen = AcousticFeatures.getpadlen(m)
+        x = randn(1000)
+        template = x[index-lpadlen:index+rpadlen]
+        s = AcousticFeatures.normcrosscorr(x, template)
+        @test s[index] == 1.0
+        @test all(s[1:n .!= index] .< 1.0)
+
     end
 
     @testset "Benchmarks" begin
