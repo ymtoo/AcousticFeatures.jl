@@ -92,6 +92,7 @@ struct ImpulseStats{FT<:Real,T<:Real,TT} <: AbstractAcousticFeature
 end
 ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3, true, nothing)
 ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true, nothing)
+ImpulseStats(fs, k, tdist, computeenvelope) = ImpulseStats(fs, k, tdist, computeenvelope, nothing)
 function ImpulseStats(fs, k, tdist, computeenvelope, template)
     if computeenvelope && !isnothing(template)
         env = envelope(template)
