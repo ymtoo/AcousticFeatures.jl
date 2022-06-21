@@ -212,6 +212,14 @@ t = (0:N-1)./fs
         @test sc3[1, 2] == μᵢᵢ
         @test sc3[1, 3] == varᵢᵢ
 
+        # with NaNs
+        x = [1,2,100,2,1,50,1,-1,3,150,3,1,NaN,5]
+        impulsestats = ImpulseStats(1, 0.1, 0.1, false, [1.0,2.0,1.0])
+        sc4 = Score(impulsestats, x)
+        @test sc4[1, 1] == 3
+        @test sc4[1, 2] == 3.5
+        @test sc4[1, 3] == 0.5
+
         @test name(ImpulseStats(fs)) == ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
     end
 

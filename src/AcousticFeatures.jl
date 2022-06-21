@@ -83,14 +83,14 @@ end
 SoundPressureLevel() = SoundPressureLevel(1.0)
 name(::SoundPressureLevel) = ["SPL"]
 
-struct ImpulseStats{FT<:Real,T<:Real,TT} <: AbstractAcousticFeature
+struct ImpulseStats{FT<:Real,K<:Real,T<:Real,TT} <: AbstractAcousticFeature
     fs::FT
-    k::Int
+    k::K
     tdist::T
     computeenvelope::Bool
     template::TT
 end
-ImpulseStats(fs) = ImpulseStats(fs, 10, 1e-3, true, nothing)
+ImpulseStats(fs) = ImpulseStats(fs, 10.0, 1e-3, true, nothing)
 ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true, nothing)
 ImpulseStats(fs, k, tdist, computeenvelope) = ImpulseStats(fs, k, tdist, computeenvelope, nothing)
 function ImpulseStats(fs, k, tdist, computeenvelope, template)
@@ -396,10 +396,9 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     if !isnothing(f.template)
         x = normcrosscorr(x, f.template)
     end
-    center = Statistics.median(x)
-    height = center+f.k*mad(x, center=center, normalize=true)
+    center = Statistics.median(filter(!isnan, x)) # median, ignoring NaNs
+    height = center + f.k * mad(filter(!isnan, x), center=center, normalize=true) # mad, ignoring NaNs
     distance = trunc(Int, f.tdist*f.fs)
-    # crds, _ = peakprom(Maxima(), x, distance; minprom=height)
     crds,_ = findpeaks1d(x; height=height, distance=distance)
     timeintervals = diff(crds)
     [convert(Float64, length(crds)), mean(timeintervals)/f.fs, var(timeintervals)/f.fs]
