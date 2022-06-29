@@ -83,22 +83,23 @@ end
 SoundPressureLevel() = SoundPressureLevel(1.0)
 name(::SoundPressureLevel) = ["SPL"]
 
-struct ImpulseStats{FT<:Real,K<:Real,T<:Real,TT} <: AbstractAcousticFeature
+struct ImpulseStats{FT<:Real,K<:Real,T<:Real,TT,H} <: AbstractAcousticFeature
     fs::FT
     k::K
     tdist::T
     computeenvelope::Bool
     template::TT
+    height::H
 end
-ImpulseStats(fs) = ImpulseStats(fs, 10.0, 1e-3, true, nothing)
-ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true, nothing)
-ImpulseStats(fs, k, tdist, computeenvelope) = ImpulseStats(fs, k, tdist, computeenvelope, nothing)
+ImpulseStats(fs) = ImpulseStats(fs, 10.0, 1e-3, true, nothing, nothing)
+ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true, nothing, nothing)
+ImpulseStats(fs, k, tdist, computeenvelope) = ImpulseStats(fs, k, tdist, computeenvelope, nothing, nothing)
 function ImpulseStats(fs, k, tdist, computeenvelope, template)
     if computeenvelope && !isnothing(template)
         env = envelope(template)
-        ImpulseStats{typeof(fs),typeof{tdist},typeof(env)}(fs, k, tdist, computeenvelope, env)
+        ImpulseStats(fs, k, tdist, computeenvelope, env, nothing)
     else
-        ImpulseStats{typeof(fs),typeof{tdist},Nothing}(fs, k, tdist, computeenvelope, template)
+        ImpulseStats(fs, k, tdist, computeenvelope, template, nothing)
     end
 end
 name(::ImpulseStats) = ["Nᵢ", "μᵢᵢ", "varᵢᵢ"] 
@@ -396,8 +397,12 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     if !isnothing(f.template)
         x = normcrosscorr(x, f.template)
     end
-    center = Statistics.median(filter(!isnan, x)) # median, ignoring NaNs
-    height = center + f.k * mad(filter(!isnan, x), center=center, normalize=true) # mad, ignoring NaNs
+    height = if isnothing(f.height)
+        center = Statistics.median(filter(!isnan, x)) # median, ignoring NaNs
+        center + f.k * mad(filter(!isnan, x), center=center, normalize=true) # mad, ignoring NaNs
+    else
+        f.height
+    end
     distance = trunc(Int, f.tdist*f.fs)
     crds,_ = findpeaks1d(x; height=height, distance=distance)
     timeintervals = diff(crds)

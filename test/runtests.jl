@@ -196,7 +196,6 @@ t = (0:N-1)./fs
         @test sc1[1, 2] == sc2[1, 2] == μᵢᵢ
         @test sc1[1, 3] == sc2[1, 3] == varᵢᵢ
 
-        
         m = 100
         lpadlen, rpadlen = AcousticFeatures.getpadlen(m)
         x = zeros(N)
@@ -205,12 +204,15 @@ t = (0:N-1)./fs
             x[trueindex-lpadlen:trueindex+rpadlen] = template
         end
         x += 0.1 .* randn(N)
-        impulsestats = ImpulseStats(fs, 5, 1e-3, false, template)
-        @test impulsestats.template == template
-        sc3 = Score(impulsestats, x)
-        @test sc3[1, 1] == Nᵢ
-        @test sc3[1, 2] == μᵢᵢ
-        @test sc3[1, 3] == varᵢᵢ
+        for height ∈ [nothing, 0.85]
+            impulsestats = ImpulseStats(fs, 5, 1e-3, false, template, height)
+            @test impulsestats.template == template
+            sc3 = Score(impulsestats, x)
+            @test sc3[1, 1] == Nᵢ
+            @test sc3[1, 2] == μᵢᵢ
+            @test sc3[1, 3] == varᵢᵢ
+        end
+
 
         # with NaNs
         x = [1,2,100,2,1,50,1,-1,3,150,3,1,NaN,5]
