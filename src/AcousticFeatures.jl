@@ -529,7 +529,7 @@ And data, a 20×1 Array{Float64,2}:
 ```
 """
 function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
-    [count(!iszero, diff(x .> 0))/length(x)]
+    [count(!iszero, diff(x .> 0)) / (length(x) - 1)]
 end
 
 """

@@ -181,7 +181,7 @@ t = (0:N-1)./fs
     @testset "ImpulseStats" begin
         @info "Testing ImpulseStats"
 
-        trueindices = [201, 2254, 5322, 8888]
+        trueindices = [201,2254,5322,8888]
         truetimeintervals = diff(trueindices)
         Nᵢ = length(trueindices)
         μᵢᵢ = mean(truetimeintervals)/fs
@@ -192,9 +192,10 @@ t = (0:N-1)./fs
 
         sc1 = Score(ImpulseStats(fs), x)
         sc2 = Score(ImpulseStats(fs, 10, 1e-3), x)
-        @test sc1[1, 1] == sc2[1, 1] == Nᵢ
-        @test sc1[1, 2] == sc2[1, 2] == μᵢᵢ
-        @test sc1[1, 3] == sc2[1, 3] == varᵢᵢ
+        sc3 = Score(ImpulseStats(fs, 10, 1e-3, true), x)
+        @test sc1[1,1] == sc2[1,1] == sc3[1,1] == Nᵢ
+        @test sc1[1,2] == sc2[1,2] == sc3[1,2] == μᵢᵢ
+        @test sc1[1,3] == sc2[1,3] == sc3[1,3] == varᵢᵢ
 
         m = 100
         lpadlen, rpadlen = AcousticFeatures.getpadlen(m)
@@ -204,13 +205,13 @@ t = (0:N-1)./fs
             x[trueindex-lpadlen:trueindex+rpadlen] = template
         end
         x += 0.1 .* randn(N)
-        for height ∈ [nothing, 0.85]
+        for height ∈ [nothing,0.85]
             impulsestats = ImpulseStats(fs, 5, 1e-3, false, template, height)
             @test impulsestats.template == template
             sc3 = Score(impulsestats, x)
-            @test sc3[1, 1] == Nᵢ
-            @test sc3[1, 2] == μᵢᵢ
-            @test sc3[1, 3] == varᵢᵢ
+            @test sc3[1,1] == Nᵢ
+            @test sc3[1,2] == μᵢᵢ
+            @test sc3[1,3] == varᵢᵢ
         end
 
 
@@ -218,9 +219,9 @@ t = (0:N-1)./fs
         x = [1,2,100,2,1,50,1,-1,3,150,3,1,NaN,5]
         impulsestats = ImpulseStats(1, 0.1, 0.1, false, [1.0,2.0,1.0])
         sc4 = Score(impulsestats, x)
-        @test sc4[1, 1] == 3
-        @test sc4[1, 2] == 3.5
-        @test sc4[1, 3] == 0.5
+        @test sc4[1,1] == 3
+        @test sc4[1,2] == 3.5
+        @test sc4[1,3] == 0.5
 
         @test name(ImpulseStats(fs)) == ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
     end
@@ -255,7 +256,10 @@ t = (0:N-1)./fs
         @info "Testing ZeroCrossingRate"
         x = [100.0, 1.0, -2.0, 2.0, -100, 0.0, 10.0]
         sc = Score(ZeroCrossingRate(), x)
-        @test sc[1] == 4 / length(x)
+        @test sc[1] == 4 / (length(x) - 1)
+        x = [1.0, -1.0, 1.0, -1.0, 1.0]
+        sc = Score(ZeroCrossingRate(), x)
+        @test sc[1] == 1.0
 
         @test name(ZeroCrossingRate()) == ["ZCR"]
     end
