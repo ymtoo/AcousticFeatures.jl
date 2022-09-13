@@ -351,6 +351,23 @@ t = (0:N-1)./fs
         @test sc1[1] > sc2[1]
     end
 
+    @testset "StatisticalComplexity" begin
+        @info "Testing StatisticalComplexity"
+
+        x = [4,7,9,10,6,11,3]
+        m = 3
+        τ1 = 1
+        τ2 = 2
+
+        sc11 = Score(StatisticalComplexity(m, τ1), x)
+        sc12 = Score(StatisticalComplexity(m, τ2), x)
+        sc13 = Score(StatisticalComplexity(m), x)
+        @test sc11[1] ≈ 0.2899 atol=0.0001
+        @test sc12[1] ≈ 0.2915 atol=0.0001
+        @test sc11[1] == sc13[1] 
+
+    end
+
     @testset "Score" begin
         @info "Testing Score"
         

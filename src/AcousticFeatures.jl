@@ -28,6 +28,7 @@ export
     PermutationEntropy,
     PSD,
     AcousticComplexityIndex,
+    StatisticalComplexity,
     Score,
 
     # subsequences
@@ -151,6 +152,13 @@ struct AcousticComplexityIndex{FT<:Real} <: AbstractAcousticFeature
     jbin::Int
 end
 name(::AcousticComplexityIndex) = ["Acoustic Complexity Index"]
+
+struct StatisticalComplexity <: AbstractAcousticFeature
+    m::Int
+    τ::Int
+end
+StatisticalComplexity(m) = StatisticalComplexity(m, 1)
+name(::StatisticalComplexity) = ["Statistical Complexity"]
 
 ################################################################################
 #
@@ -615,12 +623,12 @@ end
 Score of `x` based on permutation entropy.
 
 # Reference:
-- C. Bandt, B. Pompe, "Permutation entropy: a natural complexity measure for time series",
-Phys. Rev. Lett., 88 (17), 2002
+- C. Bandt, B. Pompe, "Permutation entropy: a natural complexity measure for time series", 
+    Phys. Rev. Lett., 88 (17), 2002
 
 - B. Fadlallah, B. Chen, A. Keil, and J. Príncipe, “Weighted-permutation entropy: a complexity 
-measure for time series incorporating amplitude information,” Physical Review E: Statistical, 
-Nonlinear, and Soft Matter Physics, vol. 87, no. 2, Article ID 022911, 2013. 
+    measure for time series incorporating amplitude information,” Physical Review E: Statistical, 
+    Nonlinear, and Soft Matter Physics, vol. 87, no. 2, Article ID 022911, 2013. 
 
 # Examples:
 ```julia-repl
@@ -732,6 +740,60 @@ function score(f::AcousticComplexityIndex, x::AbstractVector{T}) where T<:Real
         acitmp[:,i] = D ./ (sum(subsp; dims=2) .+ eps(T))
     end
     [sum(acitmp)]
+end
+
+"""
+    score(f::StatisticalComplexity, x::AbstractVector{T})
+
+Score of `x` based on statistical complexity.
+
+# Reference:
+- Lopez-Ruiz, R., Mancini, H. L., & Calbet, X. (1995). A Statistical Measure of Complexity. 
+    Physics Letters A, 209, 321-326.
+
+- A. A. B. Pessa, H. V. Ribeiro, ordpy: A Python package for data analysis with permutation entropy 
+    and ordinal network methods, Chaos 31, 063110 (2021).
+
+# Examples:
+```julia-repl
+julia> x = Score(StatisticalComplexity(7), randn(9600))
+2-dimensional AxisArray{Float64,2,...} with axes:
+    :row, [1]
+    :col, ["Statistical Complexity"]
+And data, a 1×1 Matrix{Float64}:
+ 0.1204028612063487
+
+julia> x = Score(StatisticalComplexity(7), randn(9600); winlen=960, noverlap=480)
+ 2-dimensional AxisArray{Float64,2,...} with axes:
+     :row, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641, 9121]
+     :col, ["Statistical Complexity"]
+ And data, a 20×1 Matrix{Float64}:
+  0.36175533549782896
+  0.51246451919022
+  0.5132583800072719
+  0.5130145699228823
+  ⋮
+  0.5144948633431746
+  0.5126295900830187
+  0.5133615455161591
+```
+"""
+function score(f::StatisticalComplexity, x::AbstractVector{T}) where T<:Real
+    p = ordinalpatterns(x, f.m, f.τ, false)
+    pe = -sum(p .* log2.(p))
+    n = factorial(f.m)
+    pe /= convert(eltype(pe), log2(n))    
+    
+    pᵤ = 1 / n
+    a = (pᵤ .+ p) ./ 2
+    S₁ = -sum(a .* log.(a)) - (pᵤ ./ 2) .* log.(pᵤ ./ 2) .* (n - length(p))
+    S₂ = -sum(p .* log.(p)) / 2
+    S₃ = log(n) / 2
+
+    js_div_max = -(((n + 1) / n) * log(n + 1) + log(n) - 2 * log(2 * n)) / 2
+    js_div = S₁ - S₂ - S₃
+
+    [pe * js_div / js_div_max]
 end
 
 """
