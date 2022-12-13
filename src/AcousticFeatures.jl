@@ -296,17 +296,17 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
     # crds, _ = peakprom(Maxima(), p[:, 1], trunc(Int, f.minfdist÷δf); minprom=eps(T)+percentile(p[:, 1], f.minhprc))
     crds, _ = findpeaks1d(p[:, 1]; height=eps(T)+percentile(p[:, 1], f.minhprc), distance=trunc(Int, f.minfdist/δf))
     ctrs = [[(crd, 1)] for crd in crds]
-    for (i, col) in enumerate(eachcol(p[:, 2:end]))
+    for (i, col) ∈ enumerate(eachcol(p[:, 2:end]))
         col = collect(col)
         # crds,_ = peakprom(Maxima(), col, trunc(Int, f.minfdist/δf); minprom=eps(T)+percentile(col, f.minhprc))
         crds, _ = findpeaks1d(col; height=eps(T)+percentile(col, f.minhprc), distance=trunc(Int, f.minfdist/δf))
         for crd in crds
-            if length(ctrs) == 0
+            if iszero(length(ctrs))
                 ctrs = [[(crd, 1)] for crd in crds]
             else
                 idxselect = Int64[]
                 costselect = Float64[]
-                for (j, ctr) in enumerate(ctrs)
+                for (j, ctr) ∈ enumerate(ctrs)
                     if (ctr[end][2] == i-1) && abs(frequency[ctr[end][1]]-frequency[crd]) <= f.fd
                         push!(idxselect, j)
                         push!(costselect, abs(frequency[ctr[end][1]]-frequency[crd]))
@@ -537,7 +537,7 @@ And data, a 20×1 Array{Float64,2}:
 ```
 """
 function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
-    [count(!iszero, diff(x .> 0)) / (length(x) - 1)]
+    [count(!iszero, diff(x .> zero(T))) / (length(x) - 1)]
 end
 
 """

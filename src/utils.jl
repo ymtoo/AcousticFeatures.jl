@@ -96,7 +96,7 @@ function ordinalpatterns(x::AbstractVector{T},
     n = length(x) - τ*m + τ  
     ps = UInt[]
     counts = Float64[]
-    @inbounds for t in 1:n
+    @inbounds for t ∈ 1:n
         s = @view x[t:τ:t+τ*(m-1)]
         p = sortperm(s) |> hash
         cntindex = !isempty(ps) ? findfirst(p .== ps) : nothing
@@ -112,12 +112,11 @@ function ordinalpatterns(x::AbstractVector{T},
 end
 
 function normcrosscorr(x::AbstractVector{T}, template::AbstractVector{T}) where {T}
-    s = zero(x)
-    numsamples = length(x)
+    s = similar(x)
     m = length(template)
     lpadlen, rpadlen = getpadlen(m)
     xpad = BorderArray(x, Fill(zero(T), (lpadlen,), (rpadlen,)))
-    for i ∈ 1:numsamples
+    for i ∈ eachindex(x)
         @views s[i] = cor(xpad[i-lpadlen:i+rpadlen], template)
     end
     s
