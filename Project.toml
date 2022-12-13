@@ -1,7 +1,7 @@
 name = "AcousticFeatures"
 uuid = "34fde6ae-8e37-4bf0-9e6b-7ac764dafb85"
 authors = ["ymtoo <ymtoo86@gmail.com>", "Acoustic Research Laboratory"]
-version = "0.1.10"
+version = "0.1.11"
 
 [deps]
 AlphaStableDistributions = "f20549b4-2d50-407f-863c-cdd202ba59a3"
