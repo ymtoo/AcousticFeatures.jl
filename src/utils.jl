@@ -94,21 +94,14 @@ function ordinalpatterns(x::AbstractVector{T},
                          τ::Integer=1, 
                          weighted::Bool=false) where T<:Real
     n = length(x) - τ*m + τ  
-    ps = Vector{Int}[]
+    ps = UInt[]
     counts = Float64[]
     @inbounds for t in 1:n
         s = @view x[t:τ:t+τ*(m-1)]
-        p = sortperm(s)
-#        v = [p == ptmp for ptmp in ps]
-        cntindex = nothing
-        for (i, ptmp) in enumerate(ps)
-            if p == ptmp
-                cntindex = i
-                break
-            end
-        end
+        p = sortperm(s) |> hash
+        cntindex = !isempty(ps) ? findfirst(p .== ps) : nothing
         count = weighted ? var(s) : 1.0
-        if cntindex !== nothing #any(v)
+        if !isnothing(cntindex)
             counts[cntindex] += count
         else
             push!(ps, p)
