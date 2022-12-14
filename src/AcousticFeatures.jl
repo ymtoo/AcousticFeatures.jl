@@ -813,7 +813,7 @@ By default, window length `winlen` is the length of `x`, i.e., the whole signal 
 a score, and overlapping samples `noverlap` is 0. The `padtype` specifies the form of padding, and
 for more information, refer to `ImageFiltering.jl`. The signal is subject to preliminary processing
 `preprocess`. Acoustic feature scores of subseqences can be computed through mapping 
-`map`. `show_progress` is used to monitor the computations.
+`map`. `showprogress` is used to monitor the computations.
 """
 function Score(f::AbstractAcousticFeature,
                x::AbstractVector{T};
@@ -823,13 +823,13 @@ function Score(f::AbstractAcousticFeature,
                subseqtype::DataType = Float64,
                preprocess::Function = identity,
                map::Function = map,
-               show_progress::Bool = false) where {T<:Real}
+               showprogress::Bool = false) where {T<:Real}
     (noverlap < 0) && (return throw(ArgumentError("`noverlap` must be larger or equal to zero.")))
     xlen = length(x)
 
     if winlen < xlen
         subseq = Subsequence(x, winlen, noverlap; padtype=padtype)
-        prog = Progress(length(subseq); enabled = show_progress)
+        prog = Progress(length(subseq); enabled = showprogress)
         s = progress_map(subseq; progress = prog) do x
             score(f, preprocess(convert.(subseqtype, x)))
         end
