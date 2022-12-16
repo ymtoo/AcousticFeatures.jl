@@ -805,7 +805,7 @@ end
           subseqtype=Float64,
           preprocess=identity,
           map=map,
-          showprogress=true)
+          showprogress=false)
 
 Compute acoustic feature `f` scores of a time series signal `x` using sliding windows. 
 
