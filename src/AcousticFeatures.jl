@@ -2,11 +2,14 @@ module AcousticFeatures
 
 using AlphaStableDistributions
 using AxisArrays
+using DocStringExtensions
 using DSP
 using FFTW
-using ImageFiltering: BorderArray, Fill, Pad
+#using ImageFiltering: BorderArray , Fill #, Pad
 using LinearAlgebra
 using FindPeaks1D
+using SignalAnalysis
+using SignalAnalysis: SampledSignal
 using Statistics
 using StatsBase
 using ProgressMeter
@@ -16,7 +19,6 @@ export
     # AcousticFeatures
     Energy,
     Myriad,
-    # VMyriad,
     FrequencyContours,
     SoundPressureLevel,
     ImpulseStats,
@@ -31,17 +33,12 @@ export
     StatisticalComplexity,
     Score,
 
-    # subsequences
-    Subsequence,
-
     # utils
     spectrumflatten,
     myriadconstant,
-    vmyriadconstant,
     pressure,
     envelope
 
-include("subsequences.jl")
 include("utils.jl")
 
 abstract type AbstractAcousticFeature end
@@ -60,18 +57,11 @@ end
 Myriad() = Myriad{Nothing}(nothing)
 name(::Myriad) = ["Myriad"]
 
-# struct VMyriad{T<:Union{Nothing,Real},M<:Union{Nothing,AbstractMatrix}} <: AbstractAcousticFeature
-#     K²::T
-#     Rₘ::M
-# end
-# VMyriad() = VMyriad(nothing, nothing)
-
-struct FrequencyContours{FT<:Real,T<:Real} <: AbstractAcousticFeature
-    fs::FT
+struct FrequencyContours{T<:Real} <: AbstractAcousticFeature
     n::Int
     nv::Int # overlap
-    tnorm::Union{Nothing,T} #time constant for normalization (sec)
-    fd::T #frequency difference from one step to the next (Hz)
+    tnorm::Union{Nothing,T} # time constant for normalization (sec)
+    fd::T # frequency difference from one step to the next (Hz)
     minhprc::T
     minfdist::T
     mintlen::T
@@ -84,23 +74,21 @@ end
 SoundPressureLevel() = SoundPressureLevel(1.0)
 name(::SoundPressureLevel) = ["SPL"]
 
-struct ImpulseStats{FT<:Real,K<:Real,T<:Real,TT,H} <: AbstractAcousticFeature
-    fs::FT
+struct ImpulseStats{K<:Real,T<:Real,TT,H} <: AbstractAcousticFeature
     k::K
     tdist::T
     computeenvelope::Bool
     template::TT
     height::H
 end
-ImpulseStats(fs) = ImpulseStats(fs, 10.0, 1e-3, true, nothing, nothing)
-ImpulseStats(fs, k, tdist) = ImpulseStats(fs, k, tdist, true, nothing, nothing)
-ImpulseStats(fs, k, tdist, computeenvelope) = ImpulseStats(fs, k, tdist, computeenvelope, nothing, nothing)
-function ImpulseStats(fs, k, tdist, computeenvelope, template)
+ImpulseStats(k, tdist) = ImpulseStats(k, tdist, true, nothing, nothing)
+ImpulseStats(k, tdist, computeenvelope) = ImpulseStats(k, tdist, computeenvelope, nothing, nothing)
+function ImpulseStats(k, tdist, computeenvelope, template)
     if computeenvelope && !isnothing(template)
         env = envelope(template)
-        ImpulseStats(fs, k, tdist, computeenvelope, env, nothing)
+        ImpulseStats(k, tdist, computeenvelope, env, nothing)
     else
-        ImpulseStats(fs, k, tdist, computeenvelope, template, nothing)
+        ImpulseStats(k, tdist, computeenvelope, template, nothing)
     end
 end
 name(::ImpulseStats) = ["Nᵢ", "μᵢᵢ", "varᵢᵢ"] 
@@ -108,8 +96,7 @@ name(::ImpulseStats) = ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
 struct SymmetricAlphaStableStats <: AbstractAcousticFeature end
 name(::SymmetricAlphaStableStats) = ["α", "scale"]
 
-struct Entropy{FT<:Real} <: AbstractAcousticFeature
-    fs::FT
+struct Entropy <: AbstractAcousticFeature
     n::Int
     noverlap::Int
 end
@@ -118,9 +105,7 @@ name(::Entropy) = ["Temporal Entropy","Spectral Entropy","Entropy Index"]
 struct ZeroCrossingRate <: AbstractAcousticFeature end
 name(::ZeroCrossingRate) = ["ZCR"]
 
-struct SpectralCentroid{FT<:Real} <: AbstractAcousticFeature
-    fs::FT
-end
+struct SpectralCentroid <: AbstractAcousticFeature end
 name(::SpectralCentroid) = ["Spectral Centroid"]
 
 struct SpectralFlatness <: AbstractAcousticFeature end
@@ -136,17 +121,16 @@ PermutationEntropy(m) = PermutationEntropy(m, 1, true, false)
 PermutationEntropy(m, τ) = PermutationEntropy(m, τ, true, false)
 name(::PermutationEntropy) = ["Permutation Entropy"]
 
-struct PSD{FT<:Real} <: AbstractAcousticFeature
-    fs::FT
+struct PSD <: AbstractAcousticFeature
     n::Int
     noverlap::Int
+    fs::Real
 end
 function name(f::PSD)
     "PSD-" .* string.(round.(FFTW.rfftfreq(f.n, f.fs); digits=1)) .* "Hz"
 end
 
-struct AcousticComplexityIndex{FT<:Real} <: AbstractAcousticFeature
-    fs::FT
+struct AcousticComplexityIndex <: AbstractAcousticFeature
     n::Int
     noverlap::Int
     jbin::Int
@@ -166,8 +150,7 @@ name(::StatisticalComplexity) = ["Statistical Complexity"]
 #
 ################################################################################
 """
-    score(::Energy, x::AbstractVector{T}) where {T<:Real}
-
+$(SIGNATURES)
 Score of `x` based on mean energy.
 
 # Examples:
@@ -192,8 +175,7 @@ And data, a 20×1 Array{Float64,2}:
 score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 
 """
-    Score(f::Myriad{S}, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on myriad.
 
 # Reference:
@@ -254,8 +236,7 @@ score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 # score(::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
 
 """
-    score(f::FrequencyContours, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on frequency contours count.
 
 # Reference:
@@ -286,19 +267,17 @@ And data, a 20×1 Array{Float64,2}:
  0.0
 ```
 """
-function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
-    spec = spectrogram(x, f.n, f.nv; fs=f.fs, window=DSP.hamming)
+function score(f::FrequencyContours, x::SampledSignal{T}) where T<:Real
+    spec = spectrogram(x, f.n, f.nv; fs=framerate(x), window=DSP.hamming)
     p  = spec.power; frequency=spec.freq; t=spec.time
     δt = t[2]-t[1]
     δf = frequency[2]-frequency[1]
     f.tnorm === nothing ? Nnorm = size(p, 2) : Nnorm = f.tnorm÷(δt) |> Int
     p    = spectrumflatten(p, Nnorm) #noise-flattened spectrogram
-    # crds, _ = peakprom(Maxima(), p[:, 1], trunc(Int, f.minfdist÷δf); minprom=eps(T)+percentile(p[:, 1], f.minhprc))
     crds, _ = findpeaks1d(p[:, 1]; height=eps(T)+percentile(p[:, 1], f.minhprc), distance=trunc(Int, f.minfdist/δf))
     ctrs = [[(crd, 1)] for crd in crds]
     for (i, col) ∈ enumerate(eachcol(p[:, 2:end]))
         col = collect(col)
-        # crds,_ = peakprom(Maxima(), col, trunc(Int, f.minfdist/δf); minprom=eps(T)+percentile(col, f.minhprc))
         crds, _ = findpeaks1d(col; height=eps(T)+percentile(col, f.minhprc), distance=trunc(Int, f.minfdist/δf))
         for crd in crds
             if iszero(length(ctrs))
@@ -331,8 +310,7 @@ function score(f::FrequencyContours, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    score(f::SoundPressureLevel, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal.
 In water, the common reference `ref` is 1 micropascal. In air, the
 common reference `ref` is 20 micropascal.
@@ -364,8 +342,7 @@ function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    score(f::ImpulseStats, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on number of impulses, mean and variance of inter-impulse intervals.
 The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope
 of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
@@ -398,7 +375,7 @@ And data, a 20×3 Array{Float64,2}:
  0.0  0.0        0.0
 ```
 """
-function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
+function score(f::ImpulseStats, x::SampledSignal{T}) where T<:Real
     if f.computeenvelope
         x = envelope(x)
     end
@@ -411,15 +388,14 @@ function score(f::ImpulseStats, x::AbstractVector{T}) where T<:Real
     else
         f.height
     end
-    distance = trunc(Int, f.tdist*f.fs)
-    crds,_ = findpeaks1d(x; height=height, distance=distance)
+    distance = trunc(Int, f.tdist * framerate(x))
+    crds,_ = findpeaks1d(samples(x); height=height, distance=distance)
     timeintervals = diff(crds)
-    [convert(Float64, length(crds)), mean(timeintervals)/f.fs, var(timeintervals)/f.fs]
+    [convert(Float64, length(crds)), mean(timeintervals) / framerate(x), var(timeintervals) / framerate(x)]
 end
 
 """
-    score(::SymmetricAlphaStableStats, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on the parameters of Symmetric Alpha Stable Distributions.
 The parameter α measures the impulsiveness while the parameter scale measures
 the width of the distributions.
@@ -455,8 +431,7 @@ function score(::SymmetricAlphaStableStats, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    score(f::Entropy, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on temporal entropy, spectral entropy and entropy index.
 
 # Reference:
@@ -489,8 +464,8 @@ And data, a 20×3 Array{Float64,2}:
  0.979092  0.989817  0.969122
 ```
 """
-function score(f::Entropy, x::AbstractVector{T}) where T<:Real
-    sp = spectrogram(x, f.n, f.noverlap; fs=f.fs).power
+function score(f::Entropy, x::SampledSignal{T}) where T<:Real
+    sp = spectrogram(x, f.n, f.noverlap; fs=framerate(x)).power
     ne = normalize_envelope(x)
     n = length(ne)
     Ht = -sum(ne .* log2.(ne)) ./ log2(n)
@@ -502,8 +477,7 @@ function score(f::Entropy, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    score(::ZeroCrossingRate, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on zero crossing rate.
 
 # Refernce:
@@ -541,8 +515,7 @@ function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    score(f::SpectralCentroid, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on spectral centroid.
 
 # Reference:
@@ -573,15 +546,14 @@ And data, a 20×1 Array{Float64,2}:
  2380.319011105224
 ```
 """
-function score(f::SpectralCentroid, x::AbstractVector{T}) where T<:Real
+function score(::SpectralCentroid, x::SampledSignal{T}) where T<:Real
     magnitudes = abs.(rfft(x))
-    freqs = FFTW.rfftfreq(length(x), f.fs)
+    freqs = FFTW.rfftfreq(length(x), framerate(x))
     [sum(magnitudes .* freqs) / sum(magnitudes)]
 end
 
 """
-    score(::SpectralFlatness, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on spectral flatness.
 
 # Reference:
@@ -618,8 +590,7 @@ function score(::SpectralFlatness, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    score(f::PermutationEntropy, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on permutation entropy.
 
 # Reference:
@@ -666,8 +637,7 @@ function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    score(f::PSD, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on power spectral density in dB scale.
 
 # Examples:
@@ -694,14 +664,13 @@ And data, a 20×33 Array{Float64,2}:
  -49.7118  -47.3381  -47.219   -45.3647  -45.6587     -47.3541  -47.4126  -46.1465  -46.491   -48.1833
 ```
 """
-function score(f::PSD, x::AbstractVector{T}) where T<:Real
-    p = welch_pgram(x, f.n, f.noverlap; fs=f.fs)
+function score(f::PSD, x::SampledSignal{T}) where T<:Real
+    p = welch_pgram(x, f.n, f.noverlap; fs=framerate(x))
     pow2db.(power(p))
 end
 
 """
-    score(f::AcousticComplexityIndex, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on Acoustic Complexity Index. `jbin` is the temporal size of a sub-spectrogram. 
 
 # Reference:
@@ -728,8 +697,8 @@ And data, a 20×1 Matrix{Float64}:
  1486.5057244355821
 ```
 """
-function score(f::AcousticComplexityIndex, x::AbstractVector{T}) where T<:Real
-    sp = spectrogram(x, f.n, f.noverlap; fs=f.fs).power
+function score(f::AcousticComplexityIndex, x::SampledSignal{T}) where T<:Real
+    sp = spectrogram(x, f.n, f.noverlap; fs=framerate(x)).power
     m, n = size(sp)
     starts = range(1, n-f.jbin+1; step=f.jbin)
     nstarts = length(starts)
@@ -743,8 +712,7 @@ function score(f::AcousticComplexityIndex, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    score(f::StatisticalComplexity, x::AbstractVector{T})
-
+$(SIGNATURES)
 Score of `x` based on statistical complexity.
 
 # Reference:
@@ -778,7 +746,7 @@ julia> x = Score(StatisticalComplexity(7), randn(9600); winlen=960, noverlap=480
   0.5133615455161591
 ```
 """
-function score(f::StatisticalComplexity, x::AbstractVector{T}) where T<:Real
+function score(f::StatisticalComplexity, x::SignalAnalysis.SampledSignal{T}) where T<:Real
     p = ordinalpatterns(x, f.m, f.τ, false)
     pe = -sum(p .* log2.(p))
     n = factorial(f.m)
@@ -797,17 +765,8 @@ function score(f::StatisticalComplexity, x::AbstractVector{T}) where T<:Real
 end
 
 """
-    Score(f, 
-          x; 
-          winlen=length(x), 
-          noverlap=0, 
-          padtype=:fillzeros, 
-          subseqtype=Float64,
-          preprocess=identity,
-          map=map,
-          showprogress=false)
-
-Compute acoustic feature `f` scores of a time series signal `x` using sliding windows. 
+$(TYPEDSIGNATURES) 
+Compute acoustic feature `f` scores of a SampledSignal `x` using sliding windows. 
 
 By default, window length `winlen` is the length of `x`, i.e., the whole signal is used to compute 
 a score, and overlapping samples `noverlap` is 0. The `padtype` specifies the form of padding, and
@@ -816,34 +775,58 @@ for more information, refer to `ImageFiltering.jl`. The signal is subject to pre
 `map`. `showprogress` is used to monitor the computations.
 """
 function Score(f::AbstractAcousticFeature,
-               x::AbstractVector{T};
-               winlen::Int = length(x),
-               noverlap::Int = 0,
-               padtype::Symbol = :fillzeros,
-               subseqtype::DataType = Float64,
+               x::SignalAnalysis.SampledSignal{T};
+               winlen::Int = size(x, 1),
+               noverlap::Int = zero(Int),
                preprocess::Function = identity,
-               map::Function = map,
                showprogress::Bool = false) where {T<:Real}
     (noverlap < 0) && (return throw(ArgumentError("`noverlap` must be larger or equal to zero.")))
-    xlen = length(x)
+    xlen = size(x, 1)
+    numsensors = size(x, 2)
+    fs = framerate(x)
+    stepsize = winlen - noverlap
 
-    if winlen < xlen
-        subseq = Subsequence(x, winlen, noverlap; padtype=padtype)
-        prog = Progress(length(subseq); enabled = showprogress)
-        s = progress_map(subseq; progress = prog) do x
-            score(f, preprocess(convert.(subseqtype, x)))
-        end
-        return AxisArray(vcat(reshape.(s, 1, :)...)::Matrix{subseqtype}; 
-                         row=collect(1:step(subseq):xlen), 
-                         col=name(f))
-    elseif winlen == xlen
-        stmp = score(f, preprocess(convert.(subseqtype, x)))
-        return AxisArray(reshape(stmp, (1, length(stmp))); row=ones(Int,1), col=name(f))
-    else
-        return throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
-    end
+    winlen > xlen && throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
+    prog = Progress(numsensors; enabled = showprogress)
+    s = progress_map(eachcol(x); progress = prog) do x1
+        ps = SignalAnalysis.partition(x1, winlen; step = stepsize, flush = false)
+        af1 = [convert.(Float64, score(f, preprocess(p), fs)) for p ∈ ps]
+        vcat(reshape.(af1, 1, :)...)
+    end |> x -> cat(x...; dims = 3)
+
+    return AxisArray(s; 
+                     sample = collect(1:stepsize:(size(s, 1)*stepsize)), 
+                     feature = name(f), 
+                     channel = collect(1:numsensors))
 end
 
+"""
+$(TYPEDSIGNATURES) 
+Compute acoustic feature `f` scores of a signal `x` using sliding windows. 
+
+By default, sampling rate `fs` is one, window length `winlen` is the length of `x`, i.e., the whole signal is used to compute 
+a score, and overlapping samples `noverlap` is 0. The `padtype` specifies the form of padding, and
+for more information, refer to `ImageFiltering.jl`. The signal is subject to preliminary processing
+`preprocess`. Acoustic feature scores of subseqences can be computed through mapping 
+`map`. `showprogress` is used to monitor the computations.
+
+"""
+function Score(f::AbstractAcousticFeature,
+               x::AbstractVecOrMat{T};
+               fs::Real = one(T),
+               winlen::Int = size(x, 1),
+               noverlap::Int = zero(Int),
+               preprocess::Function = identity,
+               showprogress::Bool = false) where {T<:Real}
+    Score(f, 
+          signal(x, fs); 
+          winlen = winlen, 
+          noverlap = noverlap, 
+          preprocess = preprocess, 
+          showprogress = showprogress)
+end
+
+score(f::AbstractAcousticFeature, x::AbstractVector, fs) = score(f, signal(x, fs))
 (f::AbstractAcousticFeature)(x; kwargs...) = Score(f, x; kwargs...)
 
 end

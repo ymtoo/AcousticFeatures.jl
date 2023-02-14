@@ -1,24 +1,22 @@
 """Utility functions"""
 
-# """
-# Compute the squared L2 norm.
-# """
-# norm²(x) = sum(abs2, x)
 """
 Spectral flattening.
 """
-function spectrumflatten(x::AbstractArray{T,1}, Nnorm::Int) where T <:Real
+function spectrumflatten(x::AbstractVector{T}, Nnorm::Int) where T <:Real
     if Nnorm >= length(x)
         xfilt = x.-median(x)
         xfilt[xfilt.<0] .= 0
         return xfilt
     end
-    M = map(median, Subsequence(x, Nnorm, Nnorm-1))
-    xfilt = x.-M
+    lpadlen, rpadlen = getpadlen(Nnorm)
+    xpad = padded(x, (lpadlen, rpadlen)) #vcat(zeros(T, lpadlen), x, zeros(T, rpadlen)) #BorderArray(x, Fill(zero(T), (lpadlen,), (rpadlen,)))
+    M = map(median, SignalAnalysis.partition(signal(xpad, 1), Nnorm; step = 1, flush = false))
+    xfilt = x .- M
     xfilt[xfilt.<0] .= 0
     xfilt
 end
-function spectrumflatten(x::AbstractArray{T,2}, Nnorm::Int; dims::Int=2) where T <: Real
+function spectrumflatten(x::AbstractMatrix{T}, Nnorm::Int; dims::Int=2) where T <: Real
     mapslices(v->spectrumflatten(v, Nnorm), x, dims=dims)
 end
 
@@ -37,19 +35,6 @@ function myriadconstant(x::AbstractVector{T}) where T<:Real
     myriadconstant(d.α, d.scale)
 end
 
-# """
-# Get vector myriad constants given α and Rₘ.
-# """
-# vmyriadconstant(α::T, Rₘ::AbstractMatrix{T}) where T = (α/(2-α+eps())), Rₘ
-
-# """
-# Get vector myriad constants given `x`.
-# """
-# function vmyriadconstant(x::AbstractVector{T}, m::Integer=4) where T<:Real
-#     d = fit(AlphaSubGaussian, x, m)
-#     vmyriadconstant(d.α, d.R)
-# end
-
 """
 Convert a real signal `x` to an acoustic pressure signal in micropascal.
 """
@@ -62,12 +47,17 @@ function pressure(x::AbstractVector{T}, sensitivity::T, gain::T; voltparams::Uni
     end
     x./(ν*G)
 end
+function pressure(x::AbstractMatrix{T}, sensitivity::T, gain::T; voltparams::Union{Nothing, Tuple{Int, T}}=nothing) where T<:Real
+    mapslices(x; dims = 1) do x1
+        pressure(x1, sensitivity, gain; voltparams = voltparams)
+    end
+end
 
 """
 Generate a Hilbert envelope of a real signal `x`.
 """
-function envelope(x::AbstractVector{T}) where T<:Real
-    abs.(hilbert(x))
+function envelope(x::AbstractVecOrMat{T}) where T<:Real
+    abs.(analytic(x))
 end
 
 """
@@ -84,6 +74,19 @@ Get the normalized spectrum of a real signal `x`.
 function normalize_spectrum(s::AbstractMatrix{T}) where T<:Real
     sf = sum(s, dims=2)
     sf/sum(sf)
+end
+
+"""
+Get left pad and right pad length.
+"""
+function getpadlen(winlen)
+    if mod(winlen, 2) == 0
+        lpadlen = (winlen-1)÷2
+        rpadlen = winlen÷2
+    else
+        lpadlen = rpadlen = winlen÷2
+    end
+    lpadlen, rpadlen
 end
 
 """
@@ -115,7 +118,7 @@ function normcrosscorr(x::AbstractVector{T}, template::AbstractVector{T}) where 
     s = similar(x)
     m = length(template)
     lpadlen, rpadlen = getpadlen(m)
-    xpad = BorderArray(x, Fill(zero(T), (lpadlen,), (rpadlen,)))
+    xpad = padded(x, (lpadlen, rpadlen))
     for i ∈ eachindex(x)
         @views s[i] = cor(xpad[i-lpadlen:i+rpadlen], template)
     end

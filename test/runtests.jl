@@ -19,28 +19,29 @@ t = (0:N-1)./fs
 
 @testset "AcousticFeatures" begin
 
-
     @testset "Energy" begin
         @info "Testing Energy"
 
-        x = A.*sin.(2π*frequency*t)
+        x = reshape(A.*sin.(2π*frequency*t), :, 1)
+
         @test Score(Energy(), x)[1] ≈ (A^2)/2
         winlens = [1_000, 10_000, 1_001, 10_001]
         noverlaps = [0, 100, 500]
-        for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(x, winlen, noverlap)
-            sc = Score(Energy(), x; winlen=winlen, noverlap=noverlap)
-            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
-            @test all(isapprox.(spart, repeat([(A^2)/2], length(spart)), atol=0.001))
+        for winlen ∈ winlens, noverlap ∈ noverlaps
+            sc1 = Score(Energy(), x; fs=fs, winlen=winlen, noverlap=noverlap)
+            @test all(isapprox.(sc1, repeat([(A^2)/2], length(sc1)), atol=0.001))
+            sc2 = Score(Energy(), signal(x, fs); winlen=winlen, noverlap=noverlap)
+            @test all(isapprox.(sc2, repeat([(A^2)/2], length(sc2)), atol=0.001))
         end
+
         WAV.wavwrite(x[1:N÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
         WAV.wavwrite(x[N÷2:end], joinpath(tmpdir, "2.wav"), Fs=fs)
         dfile = DistributedWAVFile(tmpdir)
         for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(dfile, winlen, noverlap)
-            sc = Score(Energy(), dfile; winlen=winlen, noverlap=noverlap)
-            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
-            @test all(isapprox.(spart, repeat([(A^2)/2], length(spart)), atol=0.001))
+            sc1 = Score(Energy(), dfile; fs=fs, winlen=winlen, noverlap=noverlap)
+            @test all(isapprox.(sc1, repeat([(A^2)/2], length(sc1)), atol=0.001))
+            sc2 = Score(Energy(), signal(dfile, fs); winlen=winlen, noverlap=noverlap)
+            @test all(isapprox.(sc2, repeat([(A^2)/2], length(sc2)), atol=0.001))
         end
 
         @test name(Energy()) == ["Energy"]
@@ -58,49 +59,24 @@ t = (0:N-1)./fs
         winlens = [1_000, 10_000, 1_001, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(x, winlen, noverlap)
-            sc = Score(Myriad(sqKscale), x; winlen=winlen, noverlap=noverlap)
-            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
-            @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
+            sc1 = Score(Myriad(sqKscale), x; fs=fs, winlen=winlen, noverlap=noverlap)
+            @test all(isapprox.(sc1 ./ winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(sc1)), atol=0.1))
+            sc2 = Score(Myriad(sqKscale), signal(x, fs); winlen=winlen, noverlap=noverlap)
+            @test all(isapprox.(sc2 ./ winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(sc2)), atol=0.1))
         end
+
         WAV.wavwrite(x[1:N÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
         WAV.wavwrite(x[N÷2:end], joinpath(tmpdir, "2.wav"), Fs=fs)
         dfile = DistributedWAVFile(tmpdir)
         for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(dfile, winlen, noverlap)
-            sc = Score(Myriad(sqKscale), dfile; winlen=winlen, noverlap=noverlap)
-            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
-            @test all(isapprox.(spart./subseq.winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(spart)), atol=0.1))
+            sc1 = Score(Myriad(sqKscale), dfile; fs=fs, winlen=winlen, noverlap=noverlap)
+            @test all(isapprox.(sc1 ./ winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(sc1)), atol=0.1))
+            sc2 = Score(Myriad(sqKscale), signal(dfile, fs); winlen=winlen, noverlap=noverlap)
+            @test all(isapprox.(sc2 ./ winlen, repeat([(log((d.α/(2-d.α+eps()))*(d.scale^2)))], length(sc2)), atol=0.1))
         end
 
         @test name(Myriad()) == ["Myriad"]
     end
-
-    # @testset "VMyriad" begin
-    #     @info "Testing VMyriad"
-
-    #     # α = 1.3
-    #     # identitymatrix = zeros(5, 5)
-    #     # identitymatrix[diagind(identitymatrix)] .= 1.0
-    #     # d = AlphaSubGaussian(α=α, n=N)
-    #     # x = rand(d)
-    #     # d̂ = fit(AlphaSubGaussian, x, 4)
-
-    #     α = 1.3
-    #     d = AlphaSubGaussian(;α=α, n=N)
-    #     x = rand(d)
-    #     d̂ = fit(AlphaSubGaussian, x, 4)
-
-    #     f0 = VMyriad(vmyriadconstant(d̂.α, d̂.R)...)
-    #     f1 = VMyriad(vmyriadconstant(1.8, d̂.R)...)
-    #     identitymatrix = zeros(5, 5)
-    #     identitymatrix[diagind(identitymatrix)] .= 1.0
-    #     f2 = VMyriad(vmyriadconstant(1.8, identitymatrix)...)
-
-    #     @test Score(f0, x).s[1] ≈ Score(VMyriad(vmyriadconstant(d̂.α, d̂.R)...), x).s[1]
-    #     @test Score(f0, x).s[1] < Score(f1, x).s[1]
-    #     @test Score(f0, x).s[1] < Score(f2, x).s[1]
-    # end
 
     @testset "FrequencyContours" begin
         @info "Testing FrequencyContours"
@@ -109,7 +85,9 @@ t = (0:N-1)./fs
         f11 = 10_000; f21 = 50_000
         f12 = 1_000; f22 = 20_000
         x1 = real(samples(chirp(f11, f21, duration, fs)))+real(samples(chirp(f12, f22, duration, fs)))
+        x1 = reshape(x1, :, 1)
         x2 = real(samples(chirp(f11, f21, duration, fs)))
+        x2 = reshape(x2, :, 1)
         n = 512
         nv = 256
         tnorm = 1.0
@@ -117,19 +95,25 @@ t = (0:N-1)./fs
         minhprc = 99.0
         minfdist = 1000.0
         mintlen = 0.05
-        sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x1)
-        sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x2)
-        @test sc1[1] > sc2[1]
+        sc1 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), x1; fs=fs)
+        ssc1 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), signal(x1, fs))
+        @test sc1 == ssc1
+        sc2 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), x2; fs=fs)
+        ssc2 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), signal(x2, fs))
+        @test sc2 == ssc2
+        @test sc1[1] > ssc2[1]
         winlens = [10_000, 10_001]
         noverlaps = [0, 100, 500]
-        for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(x1, winlen, noverlap)
-            sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x1, winlen=winlen, noverlap=noverlap)
-            sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), x2, winlen=winlen, noverlap=noverlap)
-            spart1 = sc1[(sc1.axes[1] .> subseq.winlen÷2) .& (sc1.axes[1] .< length(x1)-subseq.winlen÷2)]
-            spart2 = sc2[(sc2.axes[1] .> subseq.winlen÷2) .& (sc2.axes[1] .< length(x1)-subseq.winlen÷2)]
-            @test all(isless.(spart2, spart1))
+        for winlen ∈ winlens, noverlap ∈ noverlaps
+            sc1 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), x1; fs=fs, winlen=winlen, noverlap=noverlap)
+            ssc1 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), signal(x1, fs); winlen=winlen, noverlap=noverlap)
+            sc2 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), x2; fs=fs, winlen=winlen, noverlap=noverlap)
+            ssc2 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), signal(x2, fs); winlen=winlen, noverlap=noverlap)
+            @test sc1 == ssc1
+            @test sc2 == ssc2
+            @test all(isless.(sc2, sc1))
         end
+
         tmpdir1 = mktempdir()
         tmpdir2 = mktempdir()
         WAV.wavwrite(x1[1:N÷2], joinpath(tmpdir1, "1.wav"), Fs=fs)
@@ -139,40 +123,42 @@ t = (0:N-1)./fs
         dfile1 = DistributedWAVFile(tmpdir1)
         dfile2 = DistributedWAVFile(tmpdir2)
         for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(dfile1, winlen, noverlap)
-            sc1 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), dfile1, winlen=winlen, noverlap=noverlap)
-            sc2 = Score(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen), dfile2, winlen=winlen, noverlap=noverlap)
-            spart1 = sc1[(sc1.axes[1] .> subseq.winlen÷2) .& (sc1.axes[1] .< length(dfile1)-subseq.winlen÷2)]
-            spart2 = sc2[(sc2.axes[1] .> subseq.winlen÷2) .& (sc2.axes[1] .< length(dfile1)-subseq.winlen÷2)]
-            @test all(isless.(spart2, spart1))
+            sc1 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), dfile1; fs=fs, winlen=winlen, noverlap=noverlap)
+            ssc1 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), signal(dfile1, fs); winlen=winlen, noverlap=noverlap)
+            sc2 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), dfile2; fs=fs, winlen=winlen, noverlap=noverlap)
+            ssc2 = Score(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen), signal(dfile2, fs); winlen=winlen, noverlap=noverlap)
+            @test sc1 == ssc1
+            @test sc2 == ssc2
+            @test all(isless.(sc2, sc1))
         end
 
-        @test name(FrequencyContours(fs, n, nv, tnorm, fd, minhprc, minfdist, mintlen)) == ["Frequency Contours"]
+        @test name(FrequencyContours(n, nv, tnorm, fd, minhprc, minfdist, mintlen)) == ["Frequency Contours"]
     end
 
     @testset "SoundPressureLevel" begin
         @info "Testing SoundPressureLevel"
 
-        x = A.*sin.(2π*frequency*t)
+        x = reshape(A.*sin.(2π*frequency*t), :, 1)
         x = pressure(x, 0.0, 0.0)
         sc = Score(SoundPressureLevel(), x)
         @test sc[1] ≈ 20*log10(1/sqrt(2))
         winlens = [1_000, 10_000, 1_001, 10_001]
         noverlaps = [0, 100, 500]
         for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(x, winlen, noverlap)
-            sc = Score(SoundPressureLevel(), x; winlen=winlen, noverlap=noverlap)
-            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
-            @test all(isapprox.(spart, repeat([20*log10(1/sqrt(2))], length(spart)), atol=0.01))
+            sc = Score(SoundPressureLevel(), x; fs=fs, winlen=winlen, noverlap=noverlap)
+            ssc = Score(SoundPressureLevel(), signal(x, fs); winlen=winlen, noverlap=noverlap)
+            @test sc == ssc
+            @test all(isapprox.(sc, repeat([20*log10(1/sqrt(2))], length(sc)), atol=0.01))
         end
+
         WAV.wavwrite(x[1:length(x)÷2], joinpath(tmpdir, "1.wav"), Fs=fs)
         WAV.wavwrite(x[length(x)÷2:end], joinpath(tmpdir, "2.wav"), Fs=fs)
         dfile = DistributedWAVFile(tmpdir)
         for winlen in winlens, noverlap in noverlaps
-            subseq = Subsequence(dfile, winlen, noverlap)
-            sc = Score(SoundPressureLevel(), dfile; winlen=winlen, noverlap=noverlap)
-            spart = sc[(sc.axes[1] .> subseq.winlen÷2) .& (sc.axes[1] .< length(x)-subseq.winlen÷2)]
-            @test all(isapprox.(spart, repeat([20*log10(1/sqrt(2))], length(spart)), atol=0.01))
+            sc = Score(SoundPressureLevel(), dfile; fs=fs, winlen=winlen, noverlap=noverlap)
+            ssc = Score(SoundPressureLevel(), signal(dfile, fs); winlen=winlen, noverlap=noverlap)
+            @test sc == ssc
+            @test all(isapprox.(sc, repeat([20*log10(1/sqrt(2))], length(sc)), atol=0.01))
         end
 
         @test name(SoundPressureLevel()) == ["SPL"]
@@ -190,12 +176,15 @@ t = (0:N-1)./fs
         x[trueindices] .= 10.0
         x += 0.1 .* randn(N)
 
-        sc1 = Score(ImpulseStats(fs), x)
-        sc2 = Score(ImpulseStats(fs, 10, 1e-3), x)
-        sc3 = Score(ImpulseStats(fs, 10, 1e-3, true), x)
-        @test sc1[1,1] == sc2[1,1] == sc3[1,1] == Nᵢ
-        @test sc1[1,2] == sc2[1,2] == sc3[1,2] == μᵢᵢ
-        @test sc1[1,3] == sc2[1,3] == sc3[1,3] == varᵢᵢ
+        sc1 = Score(ImpulseStats(10, 1e-3), x; fs=fs)
+        ssc1 = Score(ImpulseStats(10, 1e-3), signal(x, fs))
+        @test sc1 == ssc1
+        sc2 = Score(ImpulseStats(10, 1e-3, true), x; fs=fs)
+        ssc2 = Score(ImpulseStats(10, 1e-3, true), signal(x, fs))
+        @test sc2 == ssc2
+        @test sc1[1,1] == sc2[1,1] == Nᵢ
+        @test sc1[1,2] == sc2[1,2] == μᵢᵢ
+        @test sc1[1,3] == sc2[1,3] == varᵢᵢ
 
         m = 100
         lpadlen, rpadlen = AcousticFeatures.getpadlen(m)
@@ -206,9 +195,9 @@ t = (0:N-1)./fs
         end
         x += 0.1 .* randn(N)
         for height ∈ [nothing,0.85]
-            impulsestats = ImpulseStats(fs, 5, 1e-3, false, template, height)
+            impulsestats = ImpulseStats(5, 1e-3, false, template, height)
             @test impulsestats.template == template
-            sc3 = Score(impulsestats, x)
+            sc3 = Score(impulsestats, x; fs=fs)
             @test sc3[1,1] == Nᵢ
             @test sc3[1,2] == μᵢᵢ
             @test sc3[1,3] == varᵢᵢ
@@ -217,13 +206,13 @@ t = (0:N-1)./fs
 
         # with NaNs
         x = [1,2,100,2,1,50,1,-1,3,150,3,1,NaN,5]
-        impulsestats = ImpulseStats(1, 0.1, 0.1, false, [1.0,2.0,1.0])
-        sc4 = Score(impulsestats, x)
+        impulsestats = ImpulseStats(0.1, 0.1, false, [1.0,2.0,1.0])
+        sc4 = Score(impulsestats, x; fs=1.0)
         @test sc4[1,1] == 3
         @test sc4[1,2] == 3.5
         @test sc4[1,3] == 0.5
 
-        @test name(ImpulseStats(fs)) == ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
+        @test name(ImpulseStats(10, 0.1)) == ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
     end
 
     @testset "SymmetricAlphaStableStats" begin
@@ -232,8 +221,10 @@ t = (0:N-1)./fs
         α = 1.6
         scale = 2.0
         d = AlphaStable(α=α, scale=scale)
-        x = rand(d, N)
-        sc = Score(SymmetricAlphaStableStats(), x)
+        x = rand(d, N, 1)
+        sc = Score(SymmetricAlphaStableStats(), x; fs=fs)
+        ssc = Score(SymmetricAlphaStableStats(), signal(x, fs))
+        @test sc == ssc
         @test sc[1,1] ≈ α atol=0.1
         @test sc[1,2] ≈ scale atol=0.1
 
@@ -243,22 +234,28 @@ t = (0:N-1)./fs
     @testset "Entropy" begin
         @info "Testing Entropy"
 
-        x = A.*sin.(2π*6250*t)
-        sc = Score(Entropy(fs, 256, 128), x)
+        x = reshape(A.*sin.(2π*6250*t), :, 1)
+        sc = Score(Entropy(256, 128), x; fs=fs)
+        ssc = Score(Entropy(256, 128), signal(x, fs))
+        @test sc == ssc
         @test sc[1] ≈ 1.0 atol=1e-2
         @test sc[2] ≈ 0.0 atol=1e-2
         @test sc[3] ≈ 0.0 atol=1e-2
 
-        @test name(Entropy(fs, 256, 128)) == ["Temporal Entropy","Spectral Entropy","Entropy Index"]
+        @test name(Entropy(256, 128)) == ["Temporal Entropy","Spectral Entropy","Entropy Index"]
     end
 
     @testset "ZeroCrossingRate" begin
         @info "Testing ZeroCrossingRate"
-        x = [100.0, 1.0, -2.0, 2.0, -100, 0.0, 10.0]
-        sc = Score(ZeroCrossingRate(), x)
+        x = reshape([100.0, 1.0, -2.0, 2.0, -100, 0.0, 10.0], :, 1)
+        sc = Score(ZeroCrossingRate(), x; fs=fs)
+        ssc = Score(ZeroCrossingRate(), signal(x, fs))
+        @test sc == ssc
         @test sc[1] == 4 / (length(x) - 1)
         x = [1.0, -1.0, 1.0, -1.0, 1.0]
-        sc = Score(ZeroCrossingRate(), x)
+        sc = Score(ZeroCrossingRate(), x; fs=fs)
+        ssc = Score(ZeroCrossingRate(), signal(x, fs))
+        @test sc == ssc
         @test sc[1] == 1.0
 
         @test name(ZeroCrossingRate()) == ["ZCR"]
@@ -267,22 +264,28 @@ t = (0:N-1)./fs
     @testset "SpectralCentroid" begin
         @info "Testing SpectralCentroid"
 
-        x = A.*sin.(2π*6250*t)
-        sc = Score(SpectralCentroid(fs), x)
+        x = reshape(A.*sin.(2π*6250*t), :, 1)
+        sc = Score(SpectralCentroid(), x; fs=fs)
+        ssc = Score(SpectralCentroid(), signal(x, fs))
+        @test sc == ssc
         @test sc[1] ≈ 6250 atol=0.0001
 
-        @test name(SpectralCentroid(fs)) == ["Spectral Centroid"]
+        @test name(SpectralCentroid()) == ["Spectral Centroid"]
     end
 
     @testset "SpectralFlatness" begin
         @info "Testing SpectralFlatness"
 
-        x = A.*sin.(2π*6250*t)
-        sc = Score(SpectralFlatness(), x)
+        x = reshape(A.*sin.(2π*6250*t), :, 1)
+        sc = Score(SpectralFlatness(), x; fs=fs)
+        ssc = Score(SpectralFlatness(), signal(x, fs))
+        @test sc == ssc
         @test sc[1] ≈ 0.0 atol=0.0001
 
         x = randn(N)
-        scnormal = Score(SpectralFlatness(), x)
+        scnormal = Score(SpectralFlatness(), x; fs=fs)
+        sscnormal = Score(SpectralFlatness(), signal(x, fs))
+        @test scnormal == sscnormal
         @test scnormal[1] > sc[1]
 
         @test name(SpectralFlatness()) == ["Spectral Flatness"]
@@ -291,7 +294,7 @@ t = (0:N-1)./fs
     @testset "PermutationEntropy" begin
         @info "Testing PermutationEntropy"
 
-        x = [4,7,9,10,6,11,3]
+        x = reshape([4,7,9,10,6,11,3], :, 1)
         m = 3
         τ1 = 1
         τ2 = 2
@@ -300,27 +303,33 @@ t = (0:N-1)./fs
         weighted1 = false
         weighted2 = true
 
-        sc111 = Score(PermutationEntropy(m, τ1, norm1, weighted1), x)
-        sc121 = Score(PermutationEntropy(m, τ1, norm2, weighted1), x)
-        sc131 = Score(PermutationEntropy(m), x)
+        sc111 = Score(PermutationEntropy(m, τ1, norm1, weighted1), x; fs=fs)
+        ssc111 = Score(PermutationEntropy(m, τ1, norm1, weighted1), signal(x, fs))
+        @test sc111 == ssc111
+        sc121 = Score(PermutationEntropy(m, τ1, norm2, weighted1), x; fs=fs)
+        ssc121 = Score(PermutationEntropy(m, τ1, norm2, weighted1), signal(x, fs))
+        @test sc121 == ssc121
+        sc131 = Score(PermutationEntropy(m), x; fs=fs)
+        ssc131 = Score(PermutationEntropy(m), signal(x, fs))
+        @test sc131 == ssc131
         @test sc111[1] ≈ 1.5219 atol=0.0001
         @test sc121[1] ≈ 0.5887 atol=0.0001
         @test sc121[1] == sc131[1] 
 
-        sc211 = Score(PermutationEntropy(m, τ2, norm1, weighted1), x)
-        sc221 = Score(PermutationEntropy(m, τ2, norm2, weighted1), x)
-        sc231 = Score(PermutationEntropy(m, τ2), x)
+        sc211 = Score(PermutationEntropy(m, τ2, norm1, weighted1), x; fs=fs)
+        sc221 = Score(PermutationEntropy(m, τ2, norm2, weighted1), x; fs=fs)
+        sc231 = Score(PermutationEntropy(m, τ2), x; fs=fs)
         @test sc211[1] ≈ 1.5850 atol=0.0001
         @test sc221[1] ≈ 0.6131 atol=0.0001
         @test sc221[1] == sc231[1] 
 
-        sc112 = Score(PermutationEntropy(m, τ1, norm1, weighted2), x)
-        sc122 = Score(PermutationEntropy(m, τ1, norm2, weighted2), x)
+        sc112 = Score(PermutationEntropy(m, τ1, norm1, weighted2), x; fs=fs)
+        sc122 = Score(PermutationEntropy(m, τ1, norm2, weighted2), x; fs=fs)
         @test sc112[1] ≈ 1.4140 atol=0.0001
         @test sc122[1] ≈ 0.5470 atol=0.0001
 
-        sc212 = Score(PermutationEntropy(m, τ2, norm1, weighted2), x)
-        sc222 = Score(PermutationEntropy(m, τ2, norm2, weighted2), x)
+        sc212 = Score(PermutationEntropy(m, τ2, norm1, weighted2), x; fs=fs)
+        sc222 = Score(PermutationEntropy(m, τ2, norm2, weighted2), x; fs=fs)
         @test sc212[1] ≈ 1.5233 atol=0.0001
         @test sc222[1] ≈ 0.5893 atol=0.0001
 
@@ -332,8 +341,10 @@ t = (0:N-1)./fs
 
         freq = 3000
         fs = 96000
-        x = cw(freq, 0.1, fs) |> real |> samples
-        sc = Score(PSD(fs, 64, 32), x)
+        s = cw(freq, 0.1, fs) |> real 
+        sc = Score(PSD(64, 32, fs), samples(s); fs=framerate(s))
+        ssc = Score(PSD(64, 32, fs), s)
+        @test sc == ssc
         @test sc.axes[2][argmax(sc)[2]] == "PSD-$(round(freq; digits=1))Hz"
     end
 
@@ -342,26 +353,36 @@ t = (0:N-1)./fs
 
         freq1, freq2 = 1000, 48000
         fs = 96000
-        x1 = chirp(freq1, freq2, 5.0, fs) |> real |> samples
-        x2 = cw(freq1, 5.0, fs) |> real |> samples
-        x1 += randn(length(x1))
-        x2 += randn(length(x2))
-        sc1 = Score(AcousticComplexityIndex(fs, 1048, 0, 30), x1)
-        sc2 = Score(AcousticComplexityIndex(fs, 1048, 0, 30), x2)
+        s1 = chirp(freq1, freq2, 5.0, fs) |> real 
+        s2 = cw(freq1, 5.0, fs) |> real 
+        s1 += randn(length(s1))
+        s2 += randn(length(s2))
+        sc1 = Score(AcousticComplexityIndex(1048, 0, 30), samples(s1); fs=framerate(s1))
+        ssc1 = Score(AcousticComplexityIndex(1048, 0, 30), s1)
+        @test sc1 == ssc1
+        sc2 = Score(AcousticComplexityIndex(1048, 0, 30), samples(s2); fs=framerate(s2))
+        ssc2 = Score(AcousticComplexityIndex(1048, 0, 30), s2)
+        @test sc2 == ssc2
         @test sc1[1] > sc2[1]
     end
 
     @testset "StatisticalComplexity" begin
         @info "Testing StatisticalComplexity"
 
-        x = [4,7,9,10,6,11,3]
+        x = reshape([4,7,9,10,6,11,3], :, 1)
         m = 3
         τ1 = 1
         τ2 = 2
 
-        sc11 = Score(StatisticalComplexity(m, τ1), x)
-        sc12 = Score(StatisticalComplexity(m, τ2), x)
-        sc13 = Score(StatisticalComplexity(m), x)
+        sc11 = Score(StatisticalComplexity(m, τ1), x; fs=fs)
+        ssc11 = Score(StatisticalComplexity(m, τ1), signal(x, fs))
+        @test sc11 == ssc11
+        sc12 = Score(StatisticalComplexity(m, τ2), x; fs=fs)
+        ssc12 = Score(StatisticalComplexity(m, τ2), signal(x, fs))
+        @test sc12 == ssc12
+        sc13 = Score(StatisticalComplexity(m), x; fs=fs)
+        ssc13 = Score(StatisticalComplexity(m), signal(x, fs))
+        @test sc13 == ssc13
         @test sc11[1] ≈ 0.2899 atol=0.0001
         @test sc12[1] ≈ 0.2915 atol=0.0001
         @test sc11[1] == sc13[1] 
@@ -373,110 +394,7 @@ t = (0:N-1)./fs
         
         @test_throws ArgumentError Score(Energy(), randn(1000); winlen=1001)
         f = Energy()
-        @test Score(f, randn(100000))[1] ≈ f(randn(100000))[1] atol=0.1
-    end
-
-    @testset "Subsequences" begin
-        @info "Testing Subsequences"
-
-        x = [1, 2, 3, 4, 5, 6, 7]
-        tmpdir = mktempdir()
-        a, b = [1, 2, 3, 4], [5, 6, 7]
-        WAV.wavwrite(a, joinpath(tmpdir, "1.wav"), Fs=100)
-        WAV.wavwrite(b, joinpath(tmpdir, "2.wav"), Fs=100)
-        dfile = DistributedWAVFile(tmpdir)
-
-        winlen = 3
-        noverlap = 1
-        subseq1 = [[0, 1, 2],
-                    [2, 3, 4],
-                    [4, 5, 6],
-                    [6, 7, 0]]
-        subseq2 = Subsequence(x, winlen, noverlap)
-        subseq3 = Subsequence(dfile, winlen, noverlap)
-        @test length(subseq1) == length(subseq2) == length(subseq3)
-        for (s1, s2, s3) in zip(subseq1, subseq2, subseq3)
-            @test s1 == s2 == s3
-        end
-
-        winlen = 3
-        noverlap = 0
-        subseq1 = [[0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 0]]
-        subseq2 = Subsequence(x, winlen, noverlap)
-        subseq3 = Subsequence(dfile, winlen, noverlap)
-        @test length(subseq1) == length(subseq2) == length(subseq3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
-            @test subseq1 == subseq2 == subseq3
-            @test subseq1[i] == subseq2[i] == subseq3[i]
-        end
-
-        winlen = 4
-        noverlap = 1
-        subseq1 = [[0, 1, 2, 3],
-                    [3, 4, 5, 6],
-                    [6, 7, 0, 0]]
-        subseq2 = Subsequence(x, winlen, noverlap)
-        subseq3 = Subsequence(dfile, winlen, noverlap)
-        @test length(subseq1) == length(subseq2) == length(subseq3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
-            @test subseq1 == subseq2 == subseq3
-            @test subseq1[i] == subseq2[i] == subseq3[i]
-        end
-
-        winlen = 4
-        noverlap = 1
-        subseq1 = [[1, 1, 2, 3],
-                    [3, 4, 5, 6],
-                    [6, 7, 7, 7]]
-        subseq2 = Subsequence(x, winlen, noverlap; padtype=:replicate)
-        subseq3 = Subsequence(dfile, winlen, noverlap; padtype=:replicate)
-        @test length(subseq1) == length(subseq2) == length(subseq3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
-            @test subseq1 == subseq2 == subseq3
-            @test subseq1[i] == subseq2[i] == subseq3[i]
-        end
-
-        winlen = 4
-        noverlap = 1
-        subseq1 = [[7, 1, 2, 3],
-                    [3, 4, 5, 6],
-                    [6, 7, 1, 2]]
-        subseq2 = Subsequence(x, winlen, noverlap; padtype=:circular)
-        subseq3 = Subsequence(dfile, winlen, noverlap; padtype=:circular)
-        @test length(subseq1) == length(subseq2) == length(subseq3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
-            @test subseq1 == subseq2 == subseq3
-            @test subseq1[i] == subseq2[i] == subseq3[i]
-        end
-
-        winlen = 4
-        noverlap = 1
-        subseq1 = [[1, 1, 2, 3],
-                    [3, 4, 5, 6],
-                    [6, 7, 7, 6]]
-        subseq2 = Subsequence(x, winlen, noverlap; padtype=:symmetric)
-        subseq3 = Subsequence(dfile, winlen, noverlap; padtype=:symmetric)
-        @test length(subseq1) == length(subseq2) == length(subseq3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
-            @test subseq1 == subseq2 == subseq3
-            @test subseq1[i] == subseq2[i] == subseq3[i]
-        end
-
-        winlen = 4
-        noverlap = 1
-        subseq1 = [[2, 1, 2, 3],
-                    [3, 4, 5, 6],
-                    [6, 7, 6, 5]]
-        subseq2 = Subsequence(x, winlen, noverlap; padtype=:reflect)
-        subseq3 = Subsequence(dfile, winlen, noverlap; padtype=:reflect)
-        @test length(subseq1) == length(subseq2) == length(subseq3)
-        for (i, (subseq1, subseq2, subseq3)) in enumerate(zip(subseq1, subseq2, subseq3))
-            @test subseq1 == subseq2 == subseq3
-            @test subseq1[i] == subseq2[i] == subseq3[i]
-        end
-
+        @test Score(f, randn(100000); fs=fs)[1] ≈ f(randn(100000); fs=fs)[1] atol=0.1
     end
 
     @testset "Utils" begin
@@ -501,13 +419,23 @@ t = (0:N-1)./fs
 
         nbits = 16
         vref = 1.0
-        xvolt = vref.*real(samples(cw(64, 1, 512)))
+        s = signal(reshape(cw(64, 1, 512), :, 1), 512)
+        xvolt = vref .* real(s)
         xbit = xvolt*(2^(nbits-1))
         sensitivity = 0.0
         gain = 0.0
         p1 = pressure(xvolt, sensitivity, gain)
         p2 = pressure(xbit, sensitivity, gain, voltparams=(nbits, vref))
         @test p1 == p2
+
+        even_ms = 2:2:10
+        for even_m ∈ even_ms
+            @test AcousticFeatures.getpadlen(even_m) == ((even_m-1) ÷ 2, even_m ÷ 2)
+        end
+        odd_ms = 1:2:10
+        for odd_m ∈ odd_ms
+            @test AcousticFeatures.getpadlen(odd_m) == (odd_m ÷ 2, odd_m ÷ 2)
+        end
 
         p = [1,2,3,4,5,6,7]
         @test AcousticFeatures.ordinalpatterns(p,3,1) == [1.0]
@@ -526,35 +454,6 @@ t = (0:N-1)./fs
         @test s[index] == 1.0
         @test all(s[1:n .!= index] .< 1.0)
 
-    end
-
-    @testset "Benchmarks" begin
-        @info "Benchmarks"
-
-        path = mktempdir()
-        y = sin.((0:99999999)/48000*2pi*440);
-        wavwrite(y, joinpath(path, "test1.wav"), Fs=48000)
-
-        dfile = DistributedWAVFile(path)
-        subseqdf = Subsequence(dfile, 96000, 0)
-
-        t = @belapsed $subseqdf[1]
-        @test t < 0.1
-        t = @belapsed $subseqdf[10]
-        @test t < 0.1
-        t = @belapsed $subseqdf[100]
-        @test t < 0.1
-
-        filepath = joinpath(path, "test1.wav")
-        lfile = LazyWAVFile(filepath)
-        subseqlf = Subsequence(lfile, 96000, 0)
-
-        t = @belapsed $subseqlf[1]
-        @test t < 0.01
-        t = @belapsed $subseqlf[10]
-        @test t < 0.01
-        t = @belapsed $subseqlf[100]
-        @test t < 0.01
     end
 
 end
