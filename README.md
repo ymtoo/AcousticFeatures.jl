@@ -31,7 +31,7 @@ using Pkg; pkg"add https://github.com/ymtoo/AcousticFeatures.jl.git"
 using AcousticFeatures, DSP, SignalAnalysis, Plots
 
 function compare(sc1, sc2)
-    plot(sc1.axes[1] ./ fs, sc1.data,
+    plot(sc1.axes[1] ./ fs, vec(sc1.data),
          xlabel = "Time (sec)",
          ylabel = "Permutation Entropy",
          label  = "without chirp",
@@ -40,7 +40,7 @@ function compare(sc1, sc2)
          thickness_scaling = 1.0,
          legend=:bottomleft
     )
-    plot!(sc2.axes[1] ./ fs, sc2.data,
+    plot!(sc2.axes[1] ./ fs, vec(sc2.data),
           xlabel = "Time (sec)",
           ylabel = "Permutation Entropy",
           label  = "with chirp",
@@ -63,21 +63,19 @@ specgram(signal(x,fs); fs=fs,nfft=128)
 ![window](chirp1-spec.png)
 ```julia
 winlen = 2400
-noverlap = 1800
+noverlap = 1200
 pe = PermutationEntropy(5, 1, true, true)
 sc1 = Score(
     pe,
     v;
     winlen = winlen,
-    noverlap = noverlap,
-    padtype = :reflect
+    noverlap = noverlap
 )
 sc2 = Score(
     pe,
     x;
     winlen = winlen,
-    noverlap = noverlap,
-    padtype = :reflect
+    noverlap = noverlap
 )
 compare(sc1, sc2)
 ```
@@ -100,21 +98,19 @@ specgram(signal(x,fs); nfft=128, fs=fs)
 ![window](chirp3-spec.png)
 ```julia
 winlen = 2400
-noverlap = 1800
+noverlap = 1200
 pe = PermutationEntropy(5, 1, true, true)
 sc1 = Score(
     pe,
     v;
     winlen = winlen,
     noverlap = noverlap,
-    padtype = :reflect
 )
 sc2 = Score(
     pe,
     x;
     winlen = winlen,
     noverlap = noverlap,
-    padtype = :reflect
 )
 compare(sc1, sc2)
 ```
