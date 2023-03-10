@@ -5,7 +5,6 @@ using AxisArrays
 using DocStringExtensions
 using DSP
 using FFTW
-#using ImageFiltering: BorderArray , Fill #, Pad
 using LinearAlgebra
 using FindPeaks1D
 using SignalAnalysis
