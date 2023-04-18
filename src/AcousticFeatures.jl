@@ -787,8 +787,8 @@ function Score(f::AbstractAcousticFeature,
 
     winlen > xlen && throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     prog = Progress(numsensors; enabled = showprogress)
-    s = progress_map(eachcol(x); progress = prog) do x1
-        ps = SignalAnalysis.partition(x1, winlen; step = stepsize, flush = false)
+    s = progress_map(Base.axes(x, 2); progress = prog) do i
+        @views ps = SignalAnalysis.partition(x[:,i], winlen; step = stepsize, flush = false)
         af1 = [convert.(Float64, score(f, preprocess(p), fs)) for p ∈ ps]
         vcat(reshape.(af1, 1, :)...)
     end |> x -> cat(x...; dims = 3)
