@@ -48,9 +48,9 @@ function pressure(x::AbstractVector{T}, sensitivity::T, gain::T; voltparams::Uni
     x./(ν*G)
 end
 function pressure(x::AbstractMatrix{T}, sensitivity::T, gain::T; voltparams::Union{Nothing, Tuple{Int, T}}=nothing) where T<:Real
-    mapslices(x; dims = 1) do x1
+    map(eachcol(x)) do x1
         pressure(x1, sensitivity, gain; voltparams = voltparams)
-    end
+    end |> stack
 end
 
 """

@@ -1,7 +1,7 @@
 name = "AcousticFeatures"
 uuid = "34fde6ae-8e37-4bf0-9e6b-7ac764dafb85"
 authors = ["ymtoo <ymtoo86@gmail.com>", "Acoustic Research Laboratory"]
-version = "0.1.12"
+version = "0.1.13"
 
 [deps]
 AlphaStableDistributions = "f20549b4-2d50-407f-863c-cdd202ba59a3"
@@ -29,7 +29,7 @@ LazyWAVFiles = "2.0"
 ProgressMeter = "1.4, 1.5, 1.6"
 SignalAnalysis = "0.4"
 StatsBase = "0.33, 0.34"
-julia = "1.6"
+julia = "1.9"
 
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"

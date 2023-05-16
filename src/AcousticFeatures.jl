@@ -789,9 +789,10 @@ function Score(f::AbstractAcousticFeature,
     prog = Progress(numsensors; enabled = showprogress)
     s = progress_map(Base.axes(x, 2); progress = prog) do i
         @views ps = SignalAnalysis.partition(x[:,i], winlen; step = stepsize, flush = false)
+        # add fs due to https://github.com/org-arl/SignalAnalysis.jl/issues/17
         af1 = [convert.(Float64, score(f, preprocess(p), fs)) for p ∈ ps]
-        vcat(reshape.(af1, 1, :)...)
-    end |> x -> cat(x...; dims = 3)
+        stack(af1; dims = 1)
+    end |> stack 
 
     return AxisArray(s; 
                      sample = collect(1:stepsize:(size(s, 1)*stepsize)), 
