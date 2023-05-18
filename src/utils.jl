@@ -38,19 +38,14 @@ end
 """
 Convert a real signal `x` to an acoustic pressure signal in micropascal.
 """
-function pressure(x::AbstractVector{T}, sensitivity::T, gain::T; voltparams::Union{Nothing, Tuple{Int, T}}=nothing) where T<:Real
-    ν = exp10(sensitivity/20)
-    G = exp10(gain/20)
+function pressure(x::T, sensitivity::T, gain::T; voltparams::Union{Nothing, Tuple{Int, T}}=nothing) where T<:Real
+    ν = exp10(sensitivity / 20)
+    G = exp10(gain / 20)
     if voltparams !== nothing
         nbits, vref = voltparams
-        x .*= vref/(2^(nbits-1))
+        x *= vref / (2 ^ (nbits - 1))
     end
-    x./(ν*G)
-end
-function pressure(x::AbstractMatrix{T}, sensitivity::T, gain::T; voltparams::Union{Nothing, Tuple{Int, T}}=nothing) where T<:Real
-    map(eachcol(x)) do x1
-        pressure(x1, sensitivity, gain; voltparams = voltparams)
-    end |> stack
+    x / (ν * G)
 end
 
 """

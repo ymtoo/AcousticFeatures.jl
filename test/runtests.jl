@@ -139,7 +139,7 @@ t = (0:N-1)./fs
         @info "Testing SoundPressureLevel"
 
         x = reshape(A.*sin.(2π*frequency*t), :, 1)
-        x = pressure(x, 0.0, 0.0)
+        x = pressure.(x, 0.0, 0.0)
         sc = Score(SoundPressureLevel(), x)
         @test sc[1] ≈ 20*log10(1/sqrt(2))
         winlens = [1_000, 10_000, 1_001, 10_001]
@@ -424,8 +424,8 @@ t = (0:N-1)./fs
         xbit = xvolt*(2^(nbits-1))
         sensitivity = 0.0
         gain = 0.0
-        p1 = pressure(xvolt, sensitivity, gain)
-        p2 = pressure(xbit, sensitivity, gain, voltparams=(nbits, vref))
+        p1 = pressure.(xvolt, sensitivity, gain)
+        p2 = pressure.(xbit, sensitivity, gain, voltparams=(nbits, vref))
         @test p1 == p2
 
         even_ms = 2:2:10
