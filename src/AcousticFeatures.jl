@@ -133,7 +133,9 @@ struct AcousticComplexityIndex <: AbstractAcousticFeature
     n::Int
     noverlap::Int
     jbin::Int
+    amplitude::Bool
 end
+AcousticComplexityIndex(n, noverlap, jbin) = AcousticComplexityIndex(n, noverlap, jbin, true)
 name(::AcousticComplexityIndex) = ["Acoustic Complexity Index"]
 
 struct StatisticalComplexity <: AbstractAcousticFeature
@@ -697,17 +699,17 @@ And data, a 20×1 Matrix{Float64}:
 ```
 """
 function score(f::AcousticComplexityIndex, x::SampledSignal{T}) where T<:Real
-    sp = spectrogram(x, f.n, f.noverlap; fs=framerate(x)).power
-    m, n = size(sp)
+    scale_fn = f.amplitude ? x -> sqrt.(x) : identity
+    sp = spectrogram(x, f.n, f.noverlap; fs=framerate(x)) |> power |> scale_fn
+    n = size(sp, 2)
     starts = range(1, n-f.jbin+1; step=f.jbin)
-    nstarts = length(starts)
-    acitmp = Matrix{T}(undef, m, nstarts)
-    for i ∈ 1:nstarts
-        subsp = sp[:,starts[i]:starts[i]+f.jbin-1]
-        D = sum(abs.(diff(subsp; dims=2)); dims=2)
-        acitmp[:,i] = D ./ (sum(subsp; dims=2) .+ eps(T))
+    aci = zero(T)
+    for start ∈ starts
+        @views subsp = sp[:,start:start+f.jbin-1]
+        aci += sum(sum(abs, diff(subsp; dims=2); dims=2) ./ 
+            (sum(subsp; dims=2) .+ eps(T)))
     end
-    [sum(acitmp)]
+    [aci]
 end
 
 """
@@ -787,10 +789,11 @@ function Score(f::AbstractAcousticFeature,
 
     winlen > xlen && throw(ArgumentError("`winlen` must be smaller or equal to the length of `x`."))
     prog = Progress(numsensors; enabled = showprogress)
-    s = progress_map(Base.axes(x, 2); progress = prog) do i
+    # s = progress_map(Base.axes(x, 2); progress = prog) do i
+    s = map(Base.axes(x, 2)) do i
+        next!(prog)
         @views ps = SignalAnalysis.partition(x[:,i], winlen; step = stepsize, flush = false)
-        # add fs due to https://github.com/org-arl/SignalAnalysis.jl/issues/17
-        af1 = [convert.(Float64, score(f, preprocess(p), fs)) for p ∈ ps]
+        af1 = [convert.(Float64, score(f, preprocess(p))) for p ∈ ps]
         stack(af1; dims = 1)
     end |> stack 
 
