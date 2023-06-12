@@ -466,7 +466,7 @@ And data, a 20×3 Array{Float64,2}:
 ```
 """
 function score(f::Entropy, x::SampledSignal{T}) where T<:Real
-    sp = spectrogram(x, f.n, f.noverlap; fs=framerate(x)).power
+    sp = power(spectrogram(x, f.n, f.noverlap; fs=framerate(x)))
     ne = normalize_envelope(x)
     n = length(ne)
     Ht = -sum(ne .* log2.(ne)) ./ log2(n)
