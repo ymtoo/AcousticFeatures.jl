@@ -169,20 +169,24 @@ Score of `x` based on mean energy.
 # Examples:
 ```julia-repl
 julia> x = Score(Energy(), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Energy"]
-And data, a 1×1 Array{Float64,2}:
- 0.9960607967861373
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Energy"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 1.001273328811565
 
 julia> x = Score(Energy(), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["Energy"]
-And data, a 20×1 Array{Float64,2}:
- 0.5280804987356663
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Energy"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.9896401818968652
  ⋮
- 0.9988797206321275
+ 0.9602549596080265
 ```
 """
 score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
@@ -198,23 +202,24 @@ IEEE Journal of Oceanic Engineering, vol. 42, no. 3, pp. 639--653, 2016.
 # Examples:
 ```julia-repl
 julia> x = Score(Myriad(), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Myriad"]
-And data, a 1×1 Array{Float64,2}:
- 27691.956992339285
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Myriad"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 30884.887026311182
 
 julia> x = Score(Myriad(), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["Myriad"]
-And data, a 20×1 Array{Float64,2}:
- -5487.396124602646
-  1977.7969182956683
-  3216.396756712948
-     ⋮
-  2651.158251224668
-  3246.7097026864853
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Myriad"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 34705.27101918274
+ ⋮
+ 34616.48633137812
 ```
 """
 function score(f::Myriad{S}, x::AbstractVector{T}) where {T<:Real,S<:Real}
@@ -258,25 +263,24 @@ contour sounds", 2011 J. Acoust. Soc. Am. 129 4055
 
 # Examples:
 ```julia-repl
-julia> x = Score(FrequencyContours(9600, 512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Frequency Contours"]
-And data, a 1×1 Array{Float64,2}:
- 0.0038910505836575876
+julia> x = Score(FrequencyContours(512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600); fs=9600)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Frequency Contours"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.004539559014267186
 
-julia> x = Score(FrequencyContours(9600, 512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["Frequency Contours"]
-And data, a 20×1 Array{Float64,2}:
- 0.0
- 0.0
- 0.0
+julia> x = Score(FrequencyContours(512, 256, 1.0, 1000.0, 99.0, 1000.0, 0.05), randn(9600); winlen=960, noverlap=480, fs=9600)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Frequency Contours"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
  0.0
  ⋮
- 0.0
- 0.0
  0.0
 ```
 """
@@ -331,22 +335,24 @@ common reference `ref` is 20 micropascal.
 # Examples:
 ```julia-repl
 julia> x = Score(SoundPressureLevel(), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["SPL"]
-And data, a 1×1 Array{Float64,2}:
- -0.08307636105819256
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["SPL"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ -0.023514452445490917
 
 julia> x = Score(SoundPressureLevel(), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["SPL"]
-And data, a 20×1 Array{Float64,2}:
- -2.369874304880999
-  0.2795371978218069
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["SPL"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+  0.1844558527671365
   ⋮
- -0.04985476533237352
-  0.11412307503113574
+ -0.12184606185171237
 ```
 """
 function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
@@ -366,26 +372,25 @@ point process in time", 2007.
 
 # Examples:
 ```julia-repl
-julia> x = Score(ImpulseStats(9600, 10, 0.01), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
-And data, a 1×3 Array{Float64,2}:
- 0.0  0.0  0.0
+julia> x = Score(ImpulseStats(10, 0.01), randn(9600); fs = 9600)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
+    :channel, [1]
+And data, a 1×3×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.0  NaN  NaN
 
-julia> x = Score(ImpulseStats(9600, 10, 0.01), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
-And data, a 20×3 Array{Float64,2}:
- 4.0  0.0140972  0.0621181
- 0.0  0.0        0.0
- 0.0  0.0        0.0
- 0.0  0.0        0.0
+julia> x = Score(ImpulseStats(10, 0.01), randn(9600); winlen=960, noverlap=480, fs=9600)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Nᵢ", "μᵢᵢ", "varᵢᵢ"]
+    :channel, [1]
+And data, a 19×3×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.0  NaN  NaN
  ⋮               
- 0.0  0.0        0.0
- 0.0  0.0        0.0
- 0.0  0.0        0.0
+ 0.0  NaN  NaN
 ```
 """
 function score(f::ImpulseStats, x::SampledSignal{T}) where T<:Real
@@ -419,23 +424,24 @@ https://github.com/org-arl/AlphaStableDistributions.jl
 # Examples:
 ```julia-repl
 julia> x = Score(SymmetricAlphaStableStats(), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["α", "scale"]
-And data, a 1×2 Array{Float64,2}:
- 2.0  0.714388
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["α", "scale"]
+    :channel, [1]
+And data, a 1×2×1 Array{Float64, 3}:
+[:, :, 1] =
+ 1.97123  0.701582
 
 julia> x = Score(SymmetricAlphaStableStats(), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["α", "scale"]
-And data, a 20×2 Array{Float64,2}:
- 0.5      0.0
- 1.90067  0.663918
- 1.83559  0.614218
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["α", "scale"]
+    :channel, [1]
+And data, a 19×2×1 Array{Float64, 3}:
+[:, :, 1] =
+ 1.86815  0.66576
  ⋮        
- 1.80072  0.676852
- 1.94506  0.677581
+ 2.0      0.678246
 ```
 """
 function score(::SymmetricAlphaStableStats, x::AbstractVector{T}) where T<:Real
@@ -453,28 +459,25 @@ Assessment and Landscape Investigation, 2014.
 
 # Examples:
 ```julia-repl
-julia> x = Score(Entropy(9600, 96, 48), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Temporal Entropy", "Spectral Entropy", "Entropy Index"]
-And data, a 1×3 Array{Float64,2}:
- 0.984457  0.997608  0.982103
+julia> x = Score(Entropy(96, 48), randn(9600); fs=9600)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Temporal Entropy", "Spectral Entropy", "Entropy Index"]
+    :channel, [1]
+And data, a 1×3×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.984822  0.998127  0.982977
 
-julia> x = Score(Entropy(9600, 96, 48), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["Temporal Entropy", "Spectral Entropy", "Entropy Index"]
-And data, a 20×3 Array{Float64,2}:
- 0.903053  0.982299  0.887068
- 0.980151  0.986018  0.966446
- 0.981492  0.984845  0.966618
- 0.980283  0.986635  0.967182
- 0.978714  0.987383  0.966366
+julia> x = Score(Entropy(96, 48), randn(9600); winlen=960, noverlap=480, fs=9600)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Temporal Entropy", "Spectral Entropy", "Entropy Index"]
+    :channel, [1]
+And data, a 19×3×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.980493  0.988433  0.969152
  ⋮                   
- 0.97895   0.986322  0.96556
- 0.980274  0.983338  0.963941
- 0.980822  0.99296   0.973917
- 0.979092  0.989817  0.969122
+ 0.979868  0.987179  0.967305
 ```
 """
 function score(f::Entropy, x::SampledSignal{T}) where T<:Real
@@ -499,28 +502,24 @@ https://en.wikipedia.org/wiki/Zero-crossing_rate
 # Examples:
 ```julia-repl
 julia> x = Score(ZeroCrossingRate(), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["ZCR"]
-And data, a 1×1 Array{Float64,2}:
- 0.5027083333333333
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["ZCR"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.497239295759975
 
 julia> x = Score(ZeroCrossingRate(), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["ZCR"]
-And data, a 20×1 Array{Float64,2}:
- 0.2375
- 0.46979166666666666
- 0.4708333333333333
- 0.49583333333333335
- 0.5072916666666667
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["ZCR"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.516162669447341
  ⋮
- 0.5145833333333333
- 0.49375
- 0.5052083333333334
- 0.5125
- 0.4947916666666667
+ 0.470281543274244
 ```
 """
 function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
@@ -536,27 +535,25 @@ https://en.wikipedia.org/wiki/Spectral_centroid
 
 # Examples:
 ```julia-repl
-julia> x = Score(SpectralCentroid(9600), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Spectral Centroid"]
-And data, a 1×1 Array{Float64,2}:
- 2387.4592177121676
+julia> x = Score(SpectralCentroid(), randn(9600); fs=9600)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Spectral Centroid"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 2406.918897946181
 
-julia> x = Score(SpectralCentroid(9600), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["Spectral Centroid"]
-And data, a 20×1 Array{Float64,2}:
- 2398.6889311658415
- 2362.570125358973
- 2342.6919660952803
- 2375.5903954079977
-    ⋮
- 2415.431353476017
- 2453.7105902333437
- 2449.222535628719
- 2380.319011105224
+julia> x = Score(SpectralCentroid(), randn(9600); winlen=960, noverlap=480, fs=9600)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Spectral Centroid"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 2470.7611082156754
+ ⋮
+ 2421.4182047609647
 ```
 """
 function score(::SpectralCentroid, x::SampledSignal{T}) where T<:Real
@@ -575,26 +572,24 @@ https://en.wikipedia.org/wiki/Spectral_flatness
 # Examples:
 ```julia-repl
 julia> x = Score(SpectralFlatness(), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Spectral Flatness"]
-And data, a 1×1 Array{Float64,2}:
- 0.5598932661540399
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Spectral Flatness"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.5703906724982125
 
 julia> x = Score(SpectralFlatness(), randn(9600); winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["Spectral Flatness"]
-And data, a 20×1 Array{Float64,2}:
- 0.5661636483227057
- 0.543740942647357
- 0.5854629162797854
- 0.532148471407988
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Spectral Flatness"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.5338443405802898
  ⋮
- 0.5451002001200566
- 0.5496170417608265
- 0.537335859768483
- 0.535056705285523
+ 0.5704666324591952
 ```
 """
 function score(::SpectralFlatness, x::AbstractVector{T}) where T<:Real
@@ -617,26 +612,24 @@ Score of `x` based on permutation entropy.
 # Examples:
 ```julia-repl
 julia> x = Score(PermutationEntropy(7), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Permutation Entropy"]
-And data, a 1×1 Array{Float64,2}:
- 0.9637270776723836
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Permutation Entropy"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.964174724342896
 
 julia> x = Score(PermutationEntropy(7), randn(9600), winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["Permutation Entropy"]
-And data, a 20×1 Array{Float64,2}:
- 0.4432867336969194
- 0.7896679491573086
- 0.7914368148634888
- 0.790455877419772
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Permutation Entropy"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.7892209267573311
  ⋮
- 0.7894106035823039
- 0.7886452315698513
- 0.7897322855510599
- 0.7884747786386084
+ 0.7887095679636025
 ```
 """
 function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
@@ -655,26 +648,25 @@ Score of `x` based on power spectral density in dB scale.
 
 # Examples:
 ```julia-repl
-julia> x = Score(PSD(96000, 64, 32), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["PSD-0Hz", "PSD-1500Hz", "PSD-3000Hz", "PSD-4500Hz", "PSD-6000Hz", "PSD-7500Hz", "PSD-9000Hz", "PSD-10500Hz", "PSD-12000Hz", "PSD-13500Hz"  …  "PSD-34500Hz", "PSD-36000Hz", "PSD-37500Hz", "PSD-39000Hz", "PSD-40500Hz", "PSD-42000Hz", "PSD-43500Hz", "PSD-45000Hz", "PSD-46500Hz", "PSD-48000Hz"]
-And data, a 1×33 Array{Float64,2}:
- -49.611  -47.1275  -46.7286  -46.4742  -46.6452  …  -47.0801  -47.2065  -46.5577  -46.4154  -50.4786
+julia> x = Score(PSD(64, 32, 96000), randn(9600); fs=96000)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["PSD-0.0Hz", "PSD-1500.0Hz", "PSD-3000.0Hz", "PSD-4500.0Hz", "PSD-6000.0Hz", "PSD-7500.0Hz", "PSD-9000.0Hz", "PSD-10500.0Hz", "PSD-12000.0Hz", "PSD-13500.0Hz"  …  "PSD-34500.0Hz", "PSD-36000.0Hz", "PSD-37500.0Hz", "PSD-39000.0Hz", "PSD-40500.0Hz", "PSD-42000.0Hz", "PSD-43500.0Hz", "PSD-45000.0Hz", "PSD-46500.0Hz", "PSD-48000.0Hz"]
+    :channel, [1]
+And data, a 1×33×1 Array{Float64, 3}:
+[:, :, 1] =
+ -50.1861  …  -46.536  -49.8058
 
-julia> x = Score(PSD(96000, 64, 32), randn(9600), winlen=960, noverlap=480)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:480:9121
-    :col, ["PSD-0Hz", "PSD-1500Hz", "PSD-3000Hz", "PSD-4500Hz", "PSD-6000Hz", "PSD-7500Hz", "PSD-9000Hz", "PSD-10500Hz", "PSD-12000Hz", "PSD-13500Hz"  …  "PSD-34500Hz", "PSD-36000Hz", "PSD-37500Hz", "PSD-39000Hz", "PSD-40500Hz", "PSD-42000Hz", "PSD-43500Hz", "PSD-45000Hz", "PSD-46500Hz", "PSD-48000Hz"]
-And data, a 20×33 Array{Float64,2}:
- -54.3507  -49.2203  -47.9715  -50.4869  -51.4884  …  -48.8581  -49.8427  -50.804   -47.5865  -51.502
- -48.4897  -45.3653  -46.2605  -47.4234  -47.4109     -46.3487  -46.3496  -48.243   -45.3489  -49.5331
- -48.0083  -45.1101  -45.8474  -47.284   -45.2843     -46.2456  -46.5622  -47.2382  -46.6219  -47.9124
- -49.023   -45.4548  -44.5266  -45.9787  -44.7397     -47.6285  -48.4443  -47.2613  -47.7996  -48.1423
-   ⋮                                               ⋱                        ⋮                 
- -49.9071  -46.6817  -47.1582  -45.9655  -48.3396     -46.986   -46.8983  -45.6008  -47.0211  -48.4817
- -49.0467  -47.1668  -46.9087  -47.0215  -47.8279     -46.8043  -47.2044  -45.6053  -47.0023  -48.222
- -49.7118  -47.3381  -47.219   -45.3647  -45.6587     -47.3541  -47.4126  -46.1465  -46.491   -48.1833
+julia> x = Score(PSD(64, 32, 96000), randn(9600), winlen=960, noverlap=480, fs=96000)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["PSD-0.0Hz", "PSD-1500.0Hz", "PSD-3000.0Hz", "PSD-4500.0Hz", "PSD-6000.0Hz", "PSD-7500.0Hz", "PSD-9000.0Hz", "PSD-10500.0Hz", "PSD-12000.0Hz", "PSD-13500.0Hz"  …  "PSD-34500.0Hz", "PSD-36000.0Hz", "PSD-37500.0Hz", "PSD-39000.0Hz", "PSD-40500.0Hz", "PSD-42000.0Hz", "PSD-43500.0Hz", "PSD-45000.0Hz", "PSD-46500.0Hz", "PSD-48000.0Hz"]
+    :channel, [1]
+And data, a 19×33×1 Array{Float64, 3}:
+[:, :, 1] =
+ -52.0638  -48.6761  …  -49.5882
+  ⋮                                                                        
+ -47.6196  -48.6223     -49.3313
 ```
 """
 function score(f::PSD, x::SampledSignal{T}) where T<:Real
@@ -691,23 +683,25 @@ N. Pieretti, A. Farina, D. Morri, "A new methodology to infer the singing activi
 
 # Examples:
 ```julia-repl
-julia> x = Score(AcousticComplexityIndex(96000, 1024, 0, 30), randn(960000))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:1
-    :col, ["Acoustic Complexity Index"]
-And data, a 1×1 Matrix{Float64}:
- 15394.052148047322
+julia> x = Score(AcousticComplexityIndex(1024, 0, 30), randn(960000); fs = 96000)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Acoustic Complexity Index"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 9055.209860502793
 
-julia> x = Score(AcousticComplexityIndex(96000, 1024, 0, 30), randn(960000), winlen=96000, noverlap=48000)
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, 1:48000:912001
-    :col, ["Acoustic Complexity Index"]
-And data, a 20×1 Matrix{Float64}:
- 998.0694761443425
- 1493.1632775077805
-    ⋮
- 1496.4075980628913
- 1486.5057244355821
+ julia> x = Score(AcousticComplexityIndex(1024, 0, 30), randn(960000), winlen=96000, noverlap=48000, fs=96000)
+ 3-dimensional AxisArray{Float64,3,...} with axes:
+     :sample, [1, 48001, 96001, 144001, 192001, 240001, 288001, 336001, 384001, 432001, 480001, 528001, 576001, 624001, 672001, 720001, 768001, 816001, 864001]
+     :feature, ["Acoustic Complexity Index"]
+     :channel, [1]
+ And data, a 19×1×1 Array{Float64, 3}:
+ [:, :, 1] =
+ 874.3303017743206
+ ⋮
+ 875.986826332567
 ```
 """
 function score(f::AcousticComplexityIndex, x::SampledSignal{T}) where T<:Real
@@ -738,25 +732,24 @@ Score of `x` based on statistical complexity.
 # Examples:
 ```julia-repl
 julia> x = Score(StatisticalComplexity(7), randn(9600))
-2-dimensional AxisArray{Float64,2,...} with axes:
-    :row, [1]
-    :col, ["Statistical Complexity"]
-And data, a 1×1 Matrix{Float64}:
- 0.1204028612063487
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Statistical Complexity"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.1203920737205638
 
 julia> x = Score(StatisticalComplexity(7), randn(9600); winlen=960, noverlap=480)
- 2-dimensional AxisArray{Float64,2,...} with axes:
-     :row, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641, 9121]
-     :col, ["Statistical Complexity"]
- And data, a 20×1 Matrix{Float64}:
-  0.36175533549782896
-  0.51246451919022
-  0.5132583800072719
-  0.5130145699228823
-  ⋮
-  0.5144948633431746
-  0.5126295900830187
-  0.5133615455161591
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Statistical Complexity"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 0.5155574606285804
+ ⋮
+ 0.515770942278282
 ```
 """
 function score(f::StatisticalComplexity, x::SignalAnalysis.SampledSignal{T}) where T<:Real
@@ -797,21 +790,16 @@ And data, a 1×1×1 Array{Float64, 3}:
 [:, :, 1] =
  2.833213240809075
 
- julia> x = Score(AcousticDiversityIndex(256, 128, 50, (50, 1000)), randn(9600); winlen = 960, noverlap = 480, fs = 2000)
- 3-dimensional AxisArray{Float64,3,...} with axes:
-     :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
-     :feature, ["Acoustic Diversity Index"]
-     :channel, [1]
- And data, a 19×1×1 Array{Float64, 3}:
- [:, :, 1] =
-  2.833213344056216
-  2.833213344056216
-  2.833213344056216
-  2.833213344056216
-  ⋮
-  2.833213344056216
-  2.833213344056216
-  2.833213344056216
+julia> x = Score(AcousticDiversityIndex(256, 128, 50, (50, 1000)), randn(9600); winlen = 960, noverlap = 480, fs = 2000)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+    :feature, ["Acoustic Diversity Index"]
+    :channel, [1]
+And data, a 19×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 2.833213344056216
+ ⋮
+ 2.833213344056216
 """
 function score(f::AcousticDiversityIndex, x::SignalAnalysis.SampledSignal{T}) where T<:Real
     minfreq, maxfreq = f.minmaxfreq_hz
