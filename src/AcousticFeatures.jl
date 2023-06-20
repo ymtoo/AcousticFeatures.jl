@@ -30,6 +30,7 @@ export
     PSD,
     AcousticComplexityIndex,
     StatisticalComplexity,
+    AcousticDiversityIndex,
     Score,
 
     # utils
@@ -144,6 +145,17 @@ struct StatisticalComplexity <: AbstractAcousticFeature
 end
 StatisticalComplexity(m) = StatisticalComplexity(m, 1)
 name(::StatisticalComplexity) = ["Statistical Complexity"]
+
+struct AcousticDiversityIndex{T<:Real} <: AbstractAcousticFeature
+    n::Int
+    noverlap::Int
+    freqband_hz::T
+    minmaxfreq_hz::Tuple{T,T}
+    threshold_db::T
+end
+AcousticDiversityIndex(n, noverlap, freqband_hz::T, minmaxfreq::Tuple{T,T}) where {T<:Real} = 
+    AcousticDiversityIndex(n, noverlap, freqband_hz, minmaxfreq, T(-50))
+name(::AcousticDiversityIndex) = ["Acoustic Diversity Index"]
 
 ################################################################################
 #
@@ -764,6 +776,73 @@ function score(f::StatisticalComplexity, x::SignalAnalysis.SampledSignal{T}) whe
 
     [pe * js_div / js_div_max]
 end
+
+"""
+$(SIGNATURES)
+Score of `x` based on acoustic diversity index.
+
+# Reference
+- Villanueva-Rivera, L. J., B. C. Pijanowski, J. Doucette, and B. Pekin. 2011. A primer of acoustic analysis for landscape ecologists. Landscape Ecology 26: 1233-1246.
+
+- https://github.com/patriceguyot/Acoustic_Indices
+
+# Examples:
+```julia-repl
+julia> x = Score(AcousticDiversityIndex(256, 128, 50, (50, 1000)), randn(9600); fs = 2000)
+3-dimensional AxisArray{Float64,3,...} with axes:
+    :sample, [1]
+    :feature, ["Acoustic Diversity Index"]
+    :channel, [1]
+And data, a 1×1×1 Array{Float64, 3}:
+[:, :, 1] =
+ 2.833213240809075
+
+ julia> x = Score(AcousticDiversityIndex(256, 128, 50, (50, 1000)), randn(9600); winlen = 960, noverlap = 480, fs = 2000)
+ 3-dimensional AxisArray{Float64,3,...} with axes:
+     :sample, [1, 481, 961, 1441, 1921, 2401, 2881, 3361, 3841, 4321, 4801, 5281, 5761, 6241, 6721, 7201, 7681, 8161, 8641]
+     :feature, ["Acoustic Diversity Index"]
+     :channel, [1]
+ And data, a 19×1×1 Array{Float64, 3}:
+ [:, :, 1] =
+  2.833213344056216
+  2.833213344056216
+  2.833213344056216
+  2.833213344056216
+  ⋮
+  2.833213344056216
+  2.833213344056216
+  2.833213344056216
+"""
+function score(f::AcousticDiversityIndex, x::SignalAnalysis.SampledSignal{T}) where T<:Real
+    minfreq, maxfreq = f.minmaxfreq_hz
+    spec = spectrogram(x, f.n, f.noverlap; fs=framerate(x))
+    freqs = freq(spec)
+    freq_step = freqs[2]
+    freq_step > f.freqband_hz && throw(ArgumentError("The frequency band size of one bin` has to be 
+        larger than the frequency step of the spectrogram."))
+    num_freqsteps = Int(f.freqband_hz ÷ freq_step)
+    sp = power(spec)
+    sp_db = pow2db.(sp ./ maximum(sp))
+    adi_bands = typeof(sp_db)[]
+    istart = 1
+    while true
+        istop = istart + num_freqsteps
+        istop > length(freqs) && break
+        if (freqs[istart] ≥ minfreq) && (freqs[istop] ≤ maxfreq)
+            push!(adi_bands, sp_db[istart:istop,:])
+            istart = istop + 1
+        else
+            istart += 1
+        end
+    end
+    vals = [sum(adi_band .> f.threshold_db) ./ length(adi_band)
+            for adi_band ∈ adi_bands]
+    filter!(!=(0), vals) # remove zeros
+    vals_sum = sum(vals)
+    [mapreduce(+, vals) do val
+        -val / vals_sum * log(val / vals_sum)
+    end]
+end    
 
 """
 $(TYPEDSIGNATURES) 

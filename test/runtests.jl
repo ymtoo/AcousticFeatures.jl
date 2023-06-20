@@ -392,6 +392,28 @@ t = (0:N-1)./fs
 
     end
 
+    @testset "AcousticDiversityIndex" begin
+        @info "Testing AcousticDiversityIndex"
+
+        freq1, freq2 = 100, 500
+        fs = 2000
+        s11 = chirp(100, 200, 5.0, fs) |> real 
+        s12 = chirp(200, 300, 5.0, fs) |> real
+        s13 = chirp(300, 400, 5.0, fs) |> real 
+        s14 = chirp(400, 500, 5.0, fs) |> real 
+        s1 = s11 + s12 + s13 + s14
+        s2 = s11
+        adi = AcousticDiversityIndex(128, 64, 50, (50, 1000), -30)
+        sc1 = Score(adi, s1)
+        sc2 = Score(adi, s2)
+        @test sc1[1] > sc2[1]
+        adi = AcousticDiversityIndex(128, 64, 50, (50, 1000))
+        sc1 = Score(adi, s1)
+        sc2 = Score(adi, s2)
+        @test sc1[1] > sc2[1]
+
+    end
+
     @testset "Score" begin
         @info "Testing Score"
         
