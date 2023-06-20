@@ -20,6 +20,7 @@ The acoustic features are:
 - [PSD](https://en.wikipedia.org/wiki/Spectral_density)
 - [Acoustic Complexity Index](https://www.sciencedirect.com/science/article/abs/pii/S1470160X10002037)
 - [Statistical Complexity](https://arxiv.org/abs/nlin/0205033)
+- [Acoustic Diversity Index](https://link.springer.com/article/10.1007/s10980-011-9636-9)
 
 ## Installation
 ```julia
