@@ -163,7 +163,7 @@ name(::AcousticDiversityIndex) = ["Acoustic Diversity Index"]
 #
 ################################################################################
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on mean energy.
 
 # Examples:
@@ -192,7 +192,7 @@ And data, a 19×1×1 Array{Float64, 3}:
 score(::Energy, x::AbstractVector{T}) where T<:Real = [mean(abs2, x)]
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on myriad.
 
 # Reference:
@@ -254,7 +254,7 @@ score(::Myriad{Nothing}, x) = score(Myriad(myriadconstant(x)), x)
 # score(::VMyriad{Nothing,Nothing}, x) = score(VMyriad(vmyriadconstant(x)...), x)
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on frequency contours count.
 
 # Reference:
@@ -327,7 +327,7 @@ function score(f::FrequencyContours, x::SampledSignal{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on Sound Pressure Level (SPL). `x` is in micropascal.
 In water, the common reference `ref` is 1 micropascal. In air, the
 common reference `ref` is 20 micropascal.
@@ -361,7 +361,7 @@ function score(f::SoundPressureLevel, x::AbstractVector{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on number of impulses, mean and variance of inter-impulse intervals.
 The minimum height of impulses is defined by `a+k*b` where `a` is median of the envelope
 of `x` and `b` is median absolute deviation (MAD) of the envelope of `x`.
@@ -413,7 +413,7 @@ function score(f::ImpulseStats, x::SampledSignal{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on the parameters of Symmetric Alpha Stable Distributions.
 The parameter α measures the impulsiveness while the parameter scale measures
 the width of the distributions.
@@ -450,7 +450,7 @@ function score(::SymmetricAlphaStableStats, x::AbstractVector{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on temporal entropy, spectral entropy and entropy index.
 
 # Reference:
@@ -493,7 +493,7 @@ function score(f::Entropy, x::SampledSignal{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on zero crossing rate.
 
 # Refernce:
@@ -527,7 +527,7 @@ function score(::ZeroCrossingRate, x::AbstractVector{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on spectral centroid.
 
 # Reference:
@@ -563,7 +563,7 @@ function score(::SpectralCentroid, x::SampledSignal{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on spectral flatness.
 
 # Reference:
@@ -598,7 +598,7 @@ function score(::SpectralFlatness, x::AbstractVector{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on permutation entropy.
 
 # Reference:
@@ -643,7 +643,7 @@ function score(f::PermutationEntropy, x::AbstractVector{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on power spectral density in dB scale.
 
 # Examples:
@@ -675,7 +675,7 @@ function score(f::PSD, x::SampledSignal{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on Acoustic Complexity Index. `jbin` is the temporal size of a sub-spectrogram. 
 
 # Reference:
@@ -719,7 +719,7 @@ function score(f::AcousticComplexityIndex, x::SampledSignal{T}) where T<:Real
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on statistical complexity.
 
 # Reference:
@@ -771,7 +771,7 @@ function score(f::StatisticalComplexity, x::SignalAnalysis.SampledSignal{T}) whe
 end
 
 """
-$(SIGNATURES)
+$(TYPEDSIGNATURES)
 Score of `x` based on acoustic diversity index.
 
 # Reference
