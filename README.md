@@ -13,7 +13,7 @@ The acoustic features are:
 | [Frequency Contours](https://asa.scitation.org/doi/10.1121/1.3531926) | FrequencyContours |
 | [Sound Pressure Level](https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level) | SoundPressureLevel |
 | Impulse Statistics (number of impulses, mean and variance of inter-impulse intervals) | ImpulseStats |
-| [Symetric Alpha Stable Statistics](https://en.wikipedia.org/wiki/Stable_distribution) (α and scale) | SymmetricAlphaStableStats |
+| [Symmetric Alpha Stable Statistics](https://en.wikipedia.org/wiki/Stable_distribution) (α and scale) | SymmetricAlphaStableStats |
 | [Entropy](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0004065) (temporal entropy, spectral entropy and entropy index) | Entropy |
 | [Zero Crossing Rate](https://en.wikipedia.org/wiki/Zero-crossing_rate) | ZeroCrossingRate |
 | [Spectral Centroid](https://en.wikipedia.org/wiki/Spectral_centroid) | SpectralCentroid |
