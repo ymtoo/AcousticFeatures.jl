@@ -6,21 +6,23 @@
 This package implements a set of methods to compute generic acoustic features in [AxisArrays](https://github.com/JuliaArrays/AxisArrays.jl.git) for time-series acoustic data.
 
 The acoustic features are:
-- Energy
-- [Myriad](https://link.springer.com/article/10.1155/S1110865702000483)
-- [Frequency Contours](https://asa.scitation.org/doi/10.1121/1.3531926)
-- [Sound Pressure Level](https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level)
-- Impulse Statistics (number of impulses, mean and variance of inter-impulse intervals)
-- [Alpha Stable Statistics (α and scale)](https://en.wikipedia.org/wiki/Stable_distribution)
-- [Entropy (temporal entropy, spectral entropy and entropy index)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0004065)
-- [Zero Crossing Rate](https://en.wikipedia.org/wiki/Zero-crossing_rate)
-- [Spectral Centroid](https://en.wikipedia.org/wiki/Spectral_centroid)
-- [Spectral Flatness](https://en.wikipedia.org/wiki/Spectral_flatness)
-- [Permutation Entropy](http://materias.df.uba.ar/mta2019v/files/2019/06/permutation_entropy1.pdf)
-- [PSD](https://en.wikipedia.org/wiki/Spectral_density)
-- [Acoustic Complexity Index](https://www.sciencedirect.com/science/article/abs/pii/S1470160X10002037)
-- [Statistical Complexity](https://arxiv.org/abs/nlin/0205033)
-- [Acoustic Diversity Index](https://link.springer.com/article/10.1007/s10980-011-9636-9)
+| Acoustic Feature   | Constructor                                    |
+|--------------------|------------------------------------------------|
+| Energy | Energy |
+| [Myriad](https://link.springer.com/article/10.1155/S1110865702000483) | Myriad |
+| [Frequency Contours](https://asa.scitation.org/doi/10.1121/1.3531926) | FrequencyContours |
+| [Sound Pressure Level](https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level) | SoundPressureLevel |
+| Impulse Statistics (number of impulses, mean and variance of inter-impulse intervals) | ImpulseStats |
+| [Symetric Alpha Stable Statistics](https://en.wikipedia.org/wiki/Stable_distribution) (α and scale) | SymmetricAlphaStableStats |
+| [Entropy](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0004065) (temporal entropy, spectral entropy and entropy index) | Entropy |
+| [Zero Crossing Rate](https://en.wikipedia.org/wiki/Zero-crossing_rate) | ZeroCrossingRate |
+| [Spectral Centroid](https://en.wikipedia.org/wiki/Spectral_centroid) | SpectralCentroid |
+| [Spectral Flatness](https://en.wikipedia.org/wiki/Spectral_flatness) | SpectralFlatness |
+| [Permutation Entropy](http://materias.df.uba.ar/mta2019v/files/2019/06/permutation_entropy1.pdf) | PermutationEntropy |
+| [PSD](https://en.wikipedia.org/wiki/Spectral_density) | PSD |
+| [Acoustic Complexity Index](https://www.sciencedirect.com/science/article/abs/pii/S1470160X10002037) | AcousticComplexityIndex |
+| [Statistical Complexity](https://arxiv.org/abs/nlin/0205033) | StatisticalComplexity |
+| [Acoustic Diversity Index](https://link.springer.com/article/10.1007/s10980-011-9636-9) | AcousticDiversityIndex |
 
 ## Installation
 ```julia
