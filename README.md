@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/ymtoo/AcousticFeatures.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/ymtoo/AcousticFeatures.jl)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://ymtoo.github.io/AcousticFeatures.jl/dev)
 
-This package implements a set of methods to compute generic acoustic features in [AxisArrays](https://github.com/JuliaArrays/AxisArrays.jl.git) for time series acoustic data.
+This package implements a set of methods to compute generic acoustic features in [AxisArrays](https://github.com/JuliaArrays/AxisArrays.jl.git) for time-series acoustic data.
 
 The acoustic features are:
 - Energy
