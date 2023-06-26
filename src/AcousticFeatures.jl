@@ -826,10 +826,14 @@ function score(f::AcousticDiversityIndex, x::SignalAnalysis.SampledSignal{T}) wh
     vals = [sum(adi_band .> f.threshold_db) ./ length(adi_band)
             for adi_band ∈ adi_bands]
     filter!(!=(0), vals) # remove zeros
-    vals_sum = sum(vals)
-    [mapreduce(+, vals) do val
-        -val / vals_sum * log(val / vals_sum)
-    end]
+    if !isempty(vals)
+        vals_sum = sum(vals)
+        [mapreduce(+, vals) do val
+            -val / vals_sum * log(val / vals_sum)
+        end]
+    else
+        [zero(eltype(sp_db))]
+    end
 end    
 
 """

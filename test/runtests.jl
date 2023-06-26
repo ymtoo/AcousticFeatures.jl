@@ -412,6 +412,8 @@ t = (0:N-1)./fs
         sc2 = Score(adi, s2)
         @test sc1[1] > sc2[1]
 
+        @test Score(adi, zeros(100000))[1] == 0.0
+
     end
 
     @testset "Score" begin
