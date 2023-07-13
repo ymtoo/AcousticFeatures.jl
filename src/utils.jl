@@ -60,7 +60,7 @@ Get the normalized envelope of of a real signal `x`.
 """
 function normalize_envelope(x::AbstractVector{T}) where T<:Real
     env = envelope(x)
-    env/sum(env)
+    env ./ (sum(env) + eps(T))
 end
 
 """
@@ -68,7 +68,7 @@ Get the normalized spectrum of a real signal `x`.
 """
 function normalize_spectrum(s::AbstractMatrix{T}) where T<:Real
     sf = sum(s, dims=2)
-    sf/sum(sf)
+    sf ./ sum(sf)
 end
 
 """

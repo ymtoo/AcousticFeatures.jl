@@ -427,10 +427,15 @@ t = (0:N-1)./fs
     @testset "Utils" begin
         @info "Testing Utils"
 
+        x = zeros(10000)
+        @test AcousticFeatures.normalize_envelope(x) == zero(x)
+        x = ones(10000)
+        @test AcousticFeatures.normalize_envelope(x) ≈ zero(x) atol = 1e-6 * length(x)
+
         x = [1, 2, 3, 4, 5, 6, 7]
         Nnorm = 3
         xfilt = x - [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0]
-        @test spectrumflatten(x, Nnorm) == xfilt
+        @test AcousticFeatures.spectrumflatten(x, Nnorm) == xfilt
 
         x = [[1 2 3 4 5 6 7];
              [8 9 10 11 12 13 14];
@@ -441,8 +446,8 @@ t = (0:N-1)./fs
         xfiltcol = x - [[1.0 2.0 3.0 4.0 5.0 6.0 7.0];
                         [8.0 9.0 10.0 11.0 12.0 13.0 14.0];
                         [8.0 9.0 10.0 11.0 12.0 13.0 14.0]]                
-        @test spectrumflatten(x, Nnorm) == xfiltrow
-        @test spectrumflatten(x, Nnorm; dims=1) == xfiltcol
+        @test AcousticFeatures.spectrumflatten(x, Nnorm) == xfiltrow
+        @test AcousticFeatures.spectrumflatten(x, Nnorm; dims=1) == xfiltcol
 
         nbits = 16
         vref = 1.0

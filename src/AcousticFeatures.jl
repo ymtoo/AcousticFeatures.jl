@@ -484,10 +484,10 @@ function score(f::Entropy, x::SampledSignal{T}) where T<:Real
     sp = power(spectrogram(x, f.n, f.noverlap; fs=framerate(x)))
     ne = normalize_envelope(x)
     n = length(ne)
-    Ht = -sum(ne .* log2.(ne)) ./ log2(n)
+    Ht = -sum(ne1 -> iszero(ne1) ? ne1 : ne1 * log2(ne1), ne) / log2(n)
     ns = normalize_spectrum(sp)
     N = length(ns)
-    Hf = -sum(ns .* log2.(ns)) ./ log2.(N)
+    Hf = -sum(ns1 -> iszero(ns1) ? ns1 : ns1 * log2(ns1), ns) / log2(N)
     H = Ht*Hf
     [Ht, Hf, H]
 end
