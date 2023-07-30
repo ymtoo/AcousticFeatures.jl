@@ -289,7 +289,7 @@ And data, a 19×1×1 Array{Float64, 3}:
 ```
 """
 function score(f::FrequencyContours, x::SampledSignal{T}) where T<:Real
-    spec = spectrogram(x, f.n, f.nv; fs=framerate(x), window=DSP.hamming)
+    spec = spectrogram(x, f.n, f.nv; fs=framerate(x), window = hanning)
     p  = spec.power; frequency=spec.freq; t=spec.time
     δt = t[2]-t[1]
     δf = frequency[2]-frequency[1]
@@ -485,7 +485,7 @@ And data, a 19×3×1 Array{Float64, 3}:
 ```
 """
 function score(f::Entropy, x::SampledSignal{T}) where T<:Real
-    sp = power(spectrogram(x, f.n, f.noverlap; fs=framerate(x)))
+    sp = power(spectrogram(x, f.n, f.noverlap; fs=framerate(x), window = hanning))
     ne = normalize_envelope(x)
     n = length(ne)
     Ht = -sum(ne1 -> iszero(ne1) ? ne1 : ne1 * log2(ne1), ne) / log2(n)
@@ -818,7 +818,7 @@ And data, a 19×1×1 Array{Float64, 3}:
 """
 function score(f::AcousticDiversityIndex, x::SignalAnalysis.SampledSignal{T}) where T<:Real
     minfreq, maxfreq = f.minmaxfreq_hz
-    spec = spectrogram(x, f.n, f.noverlap; fs=framerate(x))
+    spec = spectrogram(x, f.n, f.noverlap; fs=framerate(x), window = hanning)
     freqs = freq(spec)
     freq_step = freqs[2]
     freq_step > f.freqband_hz && throw(ArgumentError("The frequency band size of one bin` has to be 
