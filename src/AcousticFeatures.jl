@@ -130,13 +130,17 @@ function name(f::PSD)
     "PSD-" .* string.(round.(FFTW.rfftfreq(f.n, f.fs); digits=1)) .* "Hz"
 end
 
-struct AcousticComplexityIndex <: AbstractAcousticFeature
+struct AcousticComplexityIndex{T} <: AbstractAcousticFeature
     n::Int
     noverlap::Int
     jbin::Int
     amplitude::Bool
+    dbrange::T
 end
-AcousticComplexityIndex(n, noverlap, jbin) = AcousticComplexityIndex(n, noverlap, jbin, true)
+AcousticComplexityIndex(n, noverlap, jbin) = 
+    AcousticComplexityIndex(n, noverlap, jbin, true, nothing)
+AcousticComplexityIndex(n, noverlap, jbin, amplitude) = 
+    AcousticComplexityIndex(n, noverlap, jbin, amplitude, nothing)
 name(::AcousticComplexityIndex) = ["Acoustic Complexity Index"]
 
 struct StatisticalComplexity <: AbstractAcousticFeature
@@ -706,12 +710,23 @@ And data, a 1×1×1 Array{Float64, 3}:
 """
 function score(f::AcousticComplexityIndex, x::SampledSignal{T}) where T<:Real
     scale_fn = f.amplitude ? x -> sqrt.(x) : identity
-    sp = spectrogram(x, f.n, f.noverlap; fs=framerate(x)) |> power |> scale_fn
+    sp = spectrogram(x, f.n, f.noverlap; fs=framerate(x), window = hanning) |> power |> scale_fn
+    maxsp = maximum(sp)
+    if !isnothing(f.dbrange) 
+        threshold = maxsp / (f.amplitude ? db2amp(f.dbrange) : db2pow(f.dbrange))
+        sp[sp .< threshold] .= threshold 
+    end
     n = size(sp, 2)
-    starts = range(1, n-f.jbin+1; step=f.jbin)
+    if f.jbin ≤ n 
+        starts = range(1, n-f.jbin+1; step=f.jbin) 
+        jbin = f.jbin
+    else
+        starts = range(1, 1)
+        jbin = n
+    end
     aci = zero(T)
     for start ∈ starts
-        @views subsp = sp[:,start:start+f.jbin-1]
+        @views subsp = sp[:,start:start+jbin-1]
         aci += sum(sum(abs, diff(subsp; dims=2); dims=2) ./ 
             (sum(subsp; dims=2) .+ eps(T)))
     end

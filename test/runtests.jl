@@ -367,6 +367,13 @@ t = (0:N-1)./fs
         sc31 = Score(AcousticComplexityIndex(1048, 0, 30, false), samples(s1); fs=framerate(s1))
         sc32 = Score(AcousticComplexityIndex(1048, 0, 30, false), samples(s2); fs=framerate(s2))
         @test sc31[1] > sc32[1]
+        sc41 = Score(AcousticComplexityIndex(1048, 0, 30, false, 10), samples(s1); fs=framerate(s1))
+        sc42 = Score(AcousticComplexityIndex(1048, 0, 30, false, 10), samples(s2); fs=framerate(s2))
+        @test sc41[1] > sc42[1]
+        sc51 = Score(AcousticComplexityIndex(1048, 0, 10000, false, 10), samples(s1); fs=framerate(s1))
+        sc52 = Score(AcousticComplexityIndex(1048, 0, 10000, false, 10), samples(s2); fs=framerate(s2))
+        @test sc51[1] > sc52[1]
+
     end
 
     @testset "StatisticalComplexity" begin
