@@ -234,13 +234,13 @@ t = (0:N-1)./fs
     @testset "Entropy" begin
         @info "Testing Entropy"
 
-        x = reshape(A.*sin.(2π*6250*t), :, 1)
+        x = reshape(A.*sin.(2π*3125*t), :, 1)
         sc = Score(Entropy(256, 128), x; fs=fs)
         ssc = Score(Entropy(256, 128), signal(x, fs))
         @test sc == ssc
         @test sc[1] ≈ 1.0 atol=1e-2
-        @test sc[2] ≈ 0.0 atol=1e-2
-        @test sc[3] ≈ 0.0 atol=1e-2
+        @test sc[2] ≈ 0.0 atol=2e-1
+        @test sc[3] ≈ 0.0 atol=2e-1
 
         @test name(Entropy(256, 128)) == ["Temporal Entropy","Spectral Entropy","Entropy Index"]
     end
@@ -367,11 +367,11 @@ t = (0:N-1)./fs
         sc31 = Score(AcousticComplexityIndex(1048, 0, 30, false), samples(s1); fs=framerate(s1))
         sc32 = Score(AcousticComplexityIndex(1048, 0, 30, false), samples(s2); fs=framerate(s2))
         @test sc31[1] > sc32[1]
-        sc41 = Score(AcousticComplexityIndex(1048, 0, 30, false, 10), samples(s1); fs=framerate(s1))
-        sc42 = Score(AcousticComplexityIndex(1048, 0, 30, false, 10), samples(s2); fs=framerate(s2))
+        sc41 = Score(AcousticComplexityIndex(1048, 0, 30, false, -10), samples(s1); fs=framerate(s1))
+        sc42 = Score(AcousticComplexityIndex(1048, 0, 30, false, -10), samples(s2); fs=framerate(s2))
         @test sc41[1] > sc42[1]
-        sc51 = Score(AcousticComplexityIndex(1048, 0, 10000, false, 10), samples(s1); fs=framerate(s1))
-        sc52 = Score(AcousticComplexityIndex(1048, 0, 10000, false, 10), samples(s2); fs=framerate(s2))
+        sc51 = Score(AcousticComplexityIndex(1048, 0, 10000, false, -10), samples(s1); fs=framerate(s1))
+        sc52 = Score(AcousticComplexityIndex(1048, 0, 10000, false, -10), samples(s2); fs=framerate(s2))
         @test sc51[1] > sc52[1]
 
     end

@@ -135,7 +135,7 @@ struct AcousticComplexityIndex{T} <: AbstractAcousticFeature
     noverlap::Int
     jbin::Int
     amplitude::Bool
-    dbrange::T
+    threshold_db::T
 end
 AcousticComplexityIndex(n, noverlap, jbin) = 
     AcousticComplexityIndex(n, noverlap, jbin, true, nothing)
@@ -712,8 +712,8 @@ function score(f::AcousticComplexityIndex, x::SampledSignal{T}) where T<:Real
     scale_fn = f.amplitude ? x -> sqrt.(x) : identity
     sp = spectrogram(x, f.n, f.noverlap; fs=framerate(x), window = hanning) |> power |> scale_fn
     maxsp = maximum(sp)
-    if !isnothing(f.dbrange) 
-        threshold = maxsp / (f.amplitude ? db2amp(f.dbrange) : db2pow(f.dbrange))
+    if !isnothing(f.threshold_db) 
+        threshold = maxsp * (f.amplitude ? db2amp(f.threshold_db) : db2pow(f.threshold_db))
         sp[sp .< threshold] .= threshold 
     end
     n = size(sp, 2)
