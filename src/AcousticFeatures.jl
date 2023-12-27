@@ -714,7 +714,7 @@ function score(f::AcousticComplexityIndex, x::SampledSignal{T}) where T<:Real
     maxsp = maximum(sp)
     if !isnothing(f.threshold_db) 
         threshold = maxsp * (f.amplitude ? db2amp(f.threshold_db) : db2pow(f.threshold_db))
-        sp[sp .< threshold] .= threshold 
+        sp[sp .≤ threshold] .= zero(T)
     end
     n = size(sp, 2)
     if f.jbin ≤ n 
