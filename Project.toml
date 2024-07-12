@@ -28,6 +28,7 @@ FindPeaks1D = "0.1"
 LazyWAVFiles = "2.0"
 ProgressMeter = "1.4, 1.5, 1.6"
 SignalAnalysis = "0.4, 0.5, 0.6, 0.7, 0.8"
+Statistics = "1"
 StatsBase = "0.33, 0.34"
 julia = "1.9"
 
